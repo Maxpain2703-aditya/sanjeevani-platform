@@ -41,7 +41,7 @@
     .leaflet-tile-pane {
       filter: saturate(0.85) contrast(1.05);
     }
-    /* Completely hide tile attribution watermark */
+    /* Hide tile attribution watermark */
     .leaflet-control-attribution {
       display: none !important;
     }
@@ -108,11 +108,11 @@
   <aside class="relative z-30 w-72 lg:w-80 h-full bg-sidebar text-slate-300 flex flex-col justify-between shrink-0 shadow-2xl border-r border-slate-800" style="background-color: rgb(20, 2, 4); border-color: rgb(46, 8, 13);">
     <div class="flex flex-col flex-1 overflow-y-auto">
       
-      <!-- Brand & District Node Header with Hackathon Logo -->
+      <!-- Brand & District Node Header -->
       <div class="px-5 py-5 border-b border-slate-800 flex items-center justify-between" style="border-color: rgb(46, 8, 13);">
         <div class="flex items-center space-x-3.5">
           <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
-            <img src="../hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+            <img src="/hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='../hacathon logo.jpeg';">
           </div>
           <div>
             <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
@@ -125,18 +125,18 @@
         <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300 font-semibold border border-blue-400/30">ONLINE</span>
       </div>
 
-      <!-- Navigation Section -->
+      <!-- Navigation Section (Root-Absolute Paths) -->
       <nav class="px-3 py-4 space-y-1">
         <p class="px-3 pb-2 text-[10px] font-semibold tracking-wider uppercase text-slate-400">Clinical Surveillance</p>
         
-        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html">
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group cursor-pointer" href="/index.html">
           <div class="flex items-center space-x-2.5">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>Overview / Clinical Matrix</span>
           </div>
         </a>
 
-        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_medical_stock_inventory_control/code.html">
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group cursor-pointer" href="/sanjeevani_district_medical_stock_inventory_control/code.html">
           <div class="flex items-center space-x-2.5">
             <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>Medical Stock &amp; Inventory</span>
@@ -144,7 +144,8 @@
           <span class="bg-emerald-500/20 text-emerald-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-emerald-500/30" id="sidebar-stock-tag">Stock Nominal</span>
         </a>
 
-        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-white font-medium text-xs shadow-sm" href="#" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+        <!-- Active Page: Transit & Corridors -->
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-white font-medium text-xs shadow-sm cursor-pointer" href="/sanjeevani_transit_corridor_map_operations_interactive_animated_edition/code.html" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
           <div class="flex items-center space-x-2.5">
             <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>Transit &amp; Corridors</span>
@@ -152,7 +153,7 @@
           <span class="bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30" id="active-missions-badge">0 Missions</span>
         </a>
 
-        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html#telemetryFeedContainer">
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group cursor-pointer" href="/index.html#telemetryFeedContainer">
           <div class="flex items-center space-x-2.5">
             <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>WhatsApp Intake</span>
@@ -174,14 +175,14 @@
               <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-300 border border-red-800">PHC</span>
               <span class="text-white truncate font-sans text-xs">Ranaghat PHC</span>
             </div>
-            <span class="text-red-400 text-xs font-sans font-bold" id="side-ranaghat-status">14/20 Beds</span>
+            <span class="text-red-400 text-xs font-sans font-bold" id="side-ranaghat-status">19/20 Beds</span>
           </div>
           <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition" onclick="panToNode('chakdaha')">
             <div class="flex items-center space-x-2.5 truncate">
               <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">BPHC</span>
               <span class="text-white truncate font-sans text-xs">Chakdaha Depot</span>
             </div>
-            <span class="text-blue-300 text-xs font-sans font-bold" id="side-chakdaha-status">14 Free</span>
+            <span class="text-blue-300 text-xs font-sans font-bold" id="side-chakdaha-status">19 Free</span>
           </div>
           <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition" onclick="panToNode('hanskhali')">
             <div class="flex items-center space-x-2.5 truncate">
@@ -272,11 +273,11 @@
         <div class="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-slate-100 text-xs">
           <div>
             <p class="text-[10px] font-semibold text-slate-400 uppercase" id="popoverLabel1">Bed Occupancy</p>
-            <p class="text-sm font-bold text-slate-900 mt-0.5" id="popoverMetric1">14 / 20 Beds</p>
+            <p class="text-sm font-bold text-slate-900 mt-0.5" id="popoverMetric1">19 / 20 Beds</p>
           </div>
           <div>
             <p class="text-[10px] font-semibold text-slate-400 uppercase" id="popoverLabel2">Free Capacity</p>
-            <p class="text-sm font-bold text-emerald-700 mt-0.5" id="popoverMetric2">6 Beds (4 O₂)</p>
+            <p class="text-sm font-bold text-emerald-700 mt-0.5" id="popoverMetric2">1 Free (4 O₂)</p>
           </div>
         </div>
 
@@ -302,8 +303,8 @@
         <div class="flex items-center gap-2 text-xs">
           <span class="text-slate-500 font-medium">Destination Node:</span>
           <select id="dispatchDestinationSelect" onchange="onDestinationChanged()" class="text-xs font-semibold py-1.5 px-3 rounded-lg border border-slate-300 bg-slate-50 text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
-            <option value="ranaghat">Ranaghat PHC (Outbreak Ward)</option>
-            <option value="hanskhali" selected>Hanskhali Rural Hospital (13 Free Beds)</option>
+            <option value="ranaghat" selected>Ranaghat PHC (Outbreak Ward - Critical)</option>
+            <option value="hanskhali">Hanskhali Rural Hospital (Surplus Destination)</option>
           </select>
         </div>
       </div>
@@ -319,7 +320,7 @@
             <span class="font-mono text-[10px] text-blue-700 bg-blue-100/60 border border-blue-200 px-1.5 py-0.5 rounded font-semibold">3.8°C Safe</span>
           </div>
           <p class="text-[11px] text-slate-600 leading-tight" id="droneCardDescription">
-            Deliver 50 units cold-chain cargo from Chakdaha Depot to Hanskhali Rural Hospital.
+            Deliver 50 units cold-chain cargo from Chakdaha Depot to Ranaghat PHC.
           </p>
           <div class="flex items-center justify-between pt-1">
             <span class="text-[10px] font-mono text-slate-500" id="droneProgressText">Status: Fleet Ready</span>
@@ -340,7 +341,7 @@
             <span class="font-mono text-[10px] text-amber-800 bg-amber-100/70 border border-amber-300 px-1.5 py-0.5 rounded font-semibold">Priority Escort</span>
           </div>
           <p class="text-[11px] text-slate-600 leading-tight" id="roadCardDescription">
-            Transfer 5 stabilized patients along corridor to Hanskhali Rural Hospital.
+            Transfer 5 stabilized patients along NH-12 Green Corridor to Hanskhali RH.
           </p>
           <div class="flex items-center justify-between pt-1">
             <span class="text-[10px] font-mono text-slate-500" id="convoyProgressText">WBEMS Convoy Fleet Ready</span>
@@ -356,10 +357,14 @@
 </div>
 
 <script>
-    const BACKEND_URL = "http://localhost:8000";
+    // Dynamically resolve backend endpoint (production Render vs localhost)
+    const BACKEND_URL = window.location.hostname.includes("render.com")
+      ? "https://sanjeevani-backend-80sg.onrender.com"
+      : "http://localhost:8000";
+
     let map = null;
     let isPinned = false;
-    let currentTarget = "hanskhali";
+    let currentTarget = "ranaghat";
 
     // Nadia Ground Coordinates
     const NODES = {
@@ -370,16 +375,18 @@
 
     let markers = {};
     const liveVehicles = new Map();
+    let localSimulatedMissions = [];
 
     function handleGlobalLogout() {
       sessionStorage.clear();
-      window.location.href = "../sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
+      window.location.href = "/sanjeevani_dedicated_clinician_staff_access_portal/code.html";
     }
 
     function showToast(msg, icon = 'verified', color = 'text-blue-400') {
       const toast = document.getElementById('liveToast');
       const msgEl = document.getElementById('toastMessage');
       const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl || !iconEl) return;
       msgEl.textContent = msg;
       iconEl.textContent = icon;
       iconEl.className = 'material-symbols-outlined text-base ' + color;
@@ -397,7 +404,6 @@
         zoomControl: false
       });
 
-      // Free, high-contrast, watermark-free OpenStreetMap Public Tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18
       }).addTo(map);
@@ -479,14 +485,15 @@
       leafletMarker.on('mouseover', () => {
         if (!isPinned) {
           populateInspectionCard(nodeKey);
-          document.getElementById('inspectionCard').classList.remove('hidden');
-          document.getElementById('popoverPinHint').textContent = "Hovering • Click to pin";
+          document.getElementById('inspectionCard')?.classList.remove('hidden');
+          const hint = document.getElementById('popoverPinHint');
+          if (hint) hint.textContent = "Hovering • Click to pin";
         }
       });
 
       leafletMarker.on('mouseout', () => {
         if (!isPinned) {
-          document.getElementById('inspectionCard').classList.add('hidden');
+          document.getElementById('inspectionCard')?.classList.add('hidden');
         }
       });
 
@@ -498,8 +505,9 @@
           isPinned = true;
           currentTarget = nodeKey;
           populateInspectionCard(nodeKey);
-          document.getElementById('inspectionCard').classList.remove('hidden');
-          document.getElementById('popoverPinHint').textContent = "Pinned • Click anywhere to unpin";
+          document.getElementById('inspectionCard')?.classList.remove('hidden');
+          const hint = document.getElementById('popoverPinHint');
+          if (hint) hint.textContent = "Pinned • Click anywhere to unpin";
         }
       });
     }
@@ -514,6 +522,8 @@
       const l1 = document.getElementById('popoverLabel1');
       const l2 = document.getElementById('popoverLabel2');
 
+      if (!title || !tier || !addr || !dot || !m1 || !m2 || !l1 || !l2) return;
+
       if (nodeKey === 'ranaghat') {
         title.textContent = "Ranaghat PHC";
         dot.className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
@@ -522,8 +532,8 @@
         addr.textContent = NODES.ranaghat.address;
         l1.textContent = "Ward Capacity";
         l2.textContent = "Free Capacity";
-        m1.textContent = "14 / 20 Beds";
-        m2.textContent = "6 Free (4 O₂)";
+        m1.textContent = "19 / 20 Beds";
+        m2.textContent = "1 Free (4 O₂)";
       } else if (nodeKey === 'chakdaha') {
         title.textContent = "Chakdaha BPHC Depot";
         dot.className = "w-2 h-2 rounded-full bg-blue-600";
@@ -533,7 +543,7 @@
         l1.textContent = "Fleet Status";
         l2.textContent = "Depot Reserve";
         m1.textContent = "Fleet Active";
-        m2.textContent = "14 Free Beds";
+        m2.textContent = "19 Free Beds";
       } else if (nodeKey === 'hanskhali') {
         title.textContent = "Hanskhali Rural Hospital";
         dot.className = "w-2 h-2 rounded-full bg-emerald-500";
@@ -549,7 +559,7 @@
 
     function closeInspectionCard() {
       isPinned = false;
-      document.getElementById('inspectionCard').classList.add('hidden');
+      document.getElementById('inspectionCard')?.classList.add('hidden');
     }
 
     function panToNode(key) {
@@ -558,8 +568,9 @@
         isPinned = true;
         currentTarget = key;
         populateInspectionCard(key);
-        document.getElementById('inspectionCard').classList.remove('hidden');
-        document.getElementById('popoverPinHint').textContent = "Pinned • Click map to unpin";
+        document.getElementById('inspectionCard')?.classList.remove('hidden');
+        const hint = document.getElementById('popoverPinHint');
+        if (hint) hint.textContent = "Pinned • Click map to unpin";
       }
     }
 
@@ -576,12 +587,9 @@
       showToast(`Target Set to ${destName}`, 'near_me', 'text-emerald-400');
     }
 
-    // -------------------------------------------------------------
-    // DYNAMIC MULTI-VEHICLE ENGINE (Supports Multiple Drones & Convoys)
-    // -------------------------------------------------------------
     function getMissionRoute(mission) {
       const isDrone = mission.type === "drone";
-      const destName = (mission.facility || mission.to_fac || "").toLowerCase();
+      const destName = (mission.facility || mission.to_fac || mission.destination || "").toLowerCase();
       const isHanskhali = destName.includes("hanskhali");
       const destCoord = isHanskhali ? NODES.hanskhali : NODES.ranaghat;
 
@@ -630,7 +638,7 @@
           map.removeLayer(entity.marker);
           if (entity.trail) map.removeLayer(entity.trail);
           liveVehicles.delete(id);
-          showToast(`Mission ${id} Complete! Consignment Delivered.`, 'verified', 'text-emerald-400');
+          showToast(`Mission Complete! Consignment Delivered.`, 'verified', 'text-emerald-400');
         }
       }
 
@@ -657,7 +665,7 @@
                   <span class="material-symbols-outlined text-sm">${iconSymbol}</span>
                 </div>
                 <div class="absolute left-9 top-0 whitespace-nowrap bg-slate-900 text-white font-mono text-[9px] px-2 py-0.5 rounded shadow-lg border border-slate-700">
-                  ${mission.id.slice(0, 10)} • ${mission.eta_formatted || 'En Route'}
+                  ${(mission.id || 'SORTIE').slice(0, 10)} • ${mission.eta_formatted || 'En Route'}
                 </div>
               </div>
             `,
@@ -681,7 +689,7 @@
           entity = { marker, trail, routeCoords: route, mission };
           liveVehicles.set(mission.id, entity);
 
-          showToast(`Live Dispatch: ${mission.mode || 'Corridor'} active -> ${mission.facility || mission.to_fac}`, isDrone ? 'flight_takeoff' : 'local_police', isDrone ? 'text-blue-400' : 'text-amber-400');
+          showToast(`Live Dispatch: ${mission.mode || 'Corridor'} active -> ${mission.facility || mission.to_fac || mission.destination}`, isDrone ? 'flight_takeoff' : 'local_police', isDrone ? 'text-blue-400' : 'text-amber-400');
         }
 
         const interp = interpolatePosition(entity.routeCoords, progress);
@@ -702,8 +710,10 @@
 
       const droneCount = activeMissions.filter(m => m.type === "drone").length;
       const convoyCount = activeMissions.filter(m => m.type !== "drone").length;
-      document.getElementById("uavAirwayStatus").innerText = droneCount > 0 ? `Airway: ${droneCount} UAV(s) In Flight` : "Airway: Standby";
-      document.getElementById("nh12StatusLabel").innerText = convoyCount > 0 ? `Corridors: ${convoyCount} Convoy(s) Active` : "Transit Corridors Standby";
+      const uavEl = document.getElementById("uavAirwayStatus");
+      const nhEl = document.getElementById("nh12StatusLabel");
+      if (uavEl) uavEl.innerText = droneCount > 0 ? `Airway: ${droneCount} UAV(s) In Flight` : "Airway: Standby";
+      if (nhEl) nhEl.innerText = convoyCount > 0 ? `Corridors: ${convoyCount} Convoy(s) Active` : "Transit Corridors Standby";
 
       const fleetContainer = document.getElementById("sidebarFleetContainer");
       if (fleetContainer) {
@@ -712,8 +722,8 @@
         } else {
           fleetContainer.innerHTML = activeMissions.map(m => `
             <div class="flex items-center justify-between p-1.5 rounded bg-white/5 border border-white/10 text-[10px]">
-              <span class="truncate text-slate-200">${m.mode}: ${m.item || (m.patients + ' Patients')}</span>
-              <span class="text-amber-400 font-bold ml-1">${m.eta_formatted}</span>
+              <span class="truncate text-slate-200">${m.mode || 'Corridor'}: ${m.item || (m.patients ? m.patients + ' Patients' : 'Payload')}</span>
+              <span class="text-amber-400 font-bold ml-1">${m.eta_formatted || '35s'}</span>
             </div>
           `).join("");
         }
@@ -722,6 +732,23 @@
 
     async function manualTriggerSupply(mode = "drone") {
       const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Ranaghat PHC";
+      const localId = `UAV-${Math.floor(1000 + Math.random() * 9000)}`;
+      
+      const newMission = {
+        id: localId,
+        type: mode,
+        mode: mode === "drone" ? "AeroSupply UAV" : "Road Transport",
+        destination: destName,
+        facility: destName,
+        item: "Ringer's Lactate (RL) 500ml",
+        progress_pct: 0,
+        seconds_remaining: 35,
+        eta_formatted: "35s"
+      };
+
+      localSimulatedMissions.push(newMission);
+      syncActiveMissionVehicles(localSimulatedMissions);
+
       try {
         await fetch(`${BACKEND_URL}/api/v1/dispatch/supply`, {
           method: "POST",
@@ -733,12 +760,31 @@
             mode: mode
           })
         });
-        syncData();
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Dispatched via local telemetry simulation.");
+      }
     }
 
     async function manualTriggerTransfer() {
-      const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Chakdaha BPHC";
+      const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Ranaghat PHC";
+      const localId = `CONVOY-${Math.floor(100 + Math.random() * 900)}`;
+
+      const newMission = {
+        id: localId,
+        type: "convoy",
+        mode: "Green Corridor Ambulance",
+        destination: destName,
+        facility: destName,
+        item: "5 Stabilized Patients",
+        patients: 5,
+        progress_pct: 0,
+        seconds_remaining: 45,
+        eta_formatted: "45s"
+      };
+
+      localSimulatedMissions.push(newMission);
+      syncActiveMissionVehicles(localSimulatedMissions);
+
       try {
         await fetch(`${BACKEND_URL}/api/v1/beds/authorize-transfer`, {
           method: "POST",
@@ -749,8 +795,9 @@
             patient_count: 5
           })
         });
-        syncData();
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Transfer dispatched via local corridor simulation.");
+      }
     }
 
     function searchMap(term) {
@@ -761,14 +808,31 @@
       else if (q.includes('hanskhali')) panToNode('hanskhali');
     }
 
+    // Step-by-step local animation ticker for active vehicles
+    function tickLocalMissions() {
+      if (localSimulatedMissions.length === 0) return;
+      
+      localSimulatedMissions.forEach(m => {
+        m.progress_pct = Math.min(100, (m.progress_pct || 0) + 3.5);
+        const rem = Math.max(0, Math.round((100 - m.progress_pct) * 0.35));
+        m.seconds_remaining = rem;
+        m.eta_formatted = `${rem}s`;
+      });
+
+      localSimulatedMissions = localSimulatedMissions.filter(m => m.progress_pct < 100);
+      syncActiveMissionVehicles(localSimulatedMissions);
+    }
+
     async function syncData() {
       try {
         const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
-        if (!res.ok) return;
+        if (!res.ok) throw new Error("Offline");
         const data = await res.json();
 
-        if (data.active_missions) {
+        if (data.active_missions && data.active_missions.length > 0) {
           syncActiveMissionVehicles(data.active_missions);
+        } else {
+          syncActiveMissionVehicles(localSimulatedMissions);
         }
 
         if (data.bed_matrix && data.bed_matrix.facilities) {
@@ -779,15 +843,20 @@
             const name = fac.name.toLowerCase();
 
             if (name.includes("ranaghat")) {
-              document.getElementById("side-ranaghat-status").textContent = `${occ}/${tot} Beds`;
+              const el = document.getElementById("side-ranaghat-status");
+              if (el) el.textContent = `${occ}/${tot} Beds`;
             } else if (name.includes("chakdaha")) {
-              document.getElementById("side-chakdaha-status").textContent = `${free} Free`;
+              const el = document.getElementById("side-chakdaha-status");
+              if (el) el.textContent = `${free} Free`;
             } else if (name.includes("hanskhali")) {
-              document.getElementById("side-hanskhali-status").textContent = `${free} Free`;
+              const el = document.getElementById("side-hanskhali-status");
+              if (el) el.textContent = `${free} Free`;
             }
           });
         }
-      } catch (e) {}
+      } catch (e) {
+        tickLocalMissions();
+      }
     }
 
     document.addEventListener("DOMContentLoaded", () => {

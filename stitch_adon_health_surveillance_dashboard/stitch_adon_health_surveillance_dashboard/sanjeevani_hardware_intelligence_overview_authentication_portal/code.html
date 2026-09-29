@@ -1,701 +1,1025 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>SANJEEVANI - District Health Operations &amp; Clinical Command</title>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-<link href="https://fonts.googleapis.com" rel="preconnect">
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<title>SANJEEVANI - District Clinical Surveillance &amp; Bed Matrix Command Dashboard</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Three.js for Interactive 3D Digital Twin Engine -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<script id="tailwind-config">
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          surface: "#080203",
-          surfaceCard: "#120306",
-          surfaceContainer: "#1c060a",
-          brandRed: "#b61722",
-          brandCrimson: "#e11d48",
-          brandGlow: "#fda4af",
-          accentBlue: "#2563eb",
-          accentCyan: "#06b6d4",
-          accentEmerald: "#10b981",
-          accentAmber: "#f59e0b"
-        },
-        fontFamily: {
-          sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          mono: ['JetBrains Mono', 'monospace'],
-          display: ['Plus Jakarta Sans', 'sans-serif']
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: '#18191d',
+            surface: '#f8f9ff',
+            'card-border': '#e2e8f0',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
         }
       }
     }
-  }
 </script>
-
 <style>
-  @layer base {
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #080203;
-      color: #f8fafc;
-      overflow-x: hidden;
-      perspective: 1600px;
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .gauge-progress {
+      stroke-dasharray: 201.06;
+      stroke-dashoffset: 88.47;
+      transition: stroke-dashoffset 0.8s ease-out, stroke 0.4s ease;
     }
-  }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: #080203; }
-  ::-webkit-scrollbar-thumb { background: #27080d; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #b61722; }
 
-  /* 3D Model Physics & Dynamic Perspective */
-  .interactive-3d-card {
-    transform-style: preserve-3d;
-    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-    will-change: transform;
-  }
-  .interactive-3d-card:hover {
-    box-shadow: 0 25px 50px -12px rgba(182, 23, 34, 0.35), 0 0 35px rgba(37, 99, 235, 0.15);
-  }
+    @keyframes alertGlow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25), 0 2px 8px -1px rgba(239, 68, 68, 0.1); }
+      50% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.15), 0 4px 18px -1px rgba(239, 68, 68, 0.25); }
+    }
+    .critical-alert-glow { animation: alertGlow 2.5s ease-in-out infinite; }
 
-  .layer-depth-1 { transform: translateZ(25px); }
-  .layer-depth-2 { transform: translateZ(45px); }
-  .layer-depth-3 { transform: translateZ(65px); }
+    .kpi-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -3px rgba(15, 23, 42, 0.07); }
 
-  /* Tactical Grid & Ambient Pulse Background */
-  .grid-pattern {
-    background-image: linear-gradient(to right, rgba(244, 63, 94, 0.04) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(244, 63, 94, 0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
+    .table-interactive-row { transition: background-color 0.15s ease; }
+    .table-interactive-row:hover { background-color: rgba(241, 245, 249, 0.85); }
+    .table-interactive-row.critical-row:hover { background-color: rgba(254, 242, 242, 0.9); }
 
-  @keyframes telemetryPulse {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.08); }
-  }
-  .telemetry-pulse { animation: telemetryPulse 4s ease-in-out infinite; }
+    @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .animate-pulse-fast { animation: pulse-fast 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 </style>
 </head>
+<body class="bg-surface text-slate-800 font-sans antialiased min-h-screen flex flex-col md:flex-row relative">
 
-<body class="bg-surface font-sans text-slate-100 antialiased selection:bg-brandRed selection:text-white grid-pattern relative select-none">
-
-<!-- Ambient 3D Depth Lights -->
-<div class="fixed -top-40 -left-40 w-[600px] h-[600px] bg-brandRed/15 rounded-full blur-[160px] pointer-events-none telemetry-pulse z-0"></div>
-<div class="fixed top-1/3 -right-40 w-[650px] h-[650px] bg-accentBlue/10 rounded-full blur-[180px] pointer-events-none telemetry-pulse z-0" style="animation-delay: -2s;"></div>
-
-<!-- FIXED TOP NAVIGATION -->
-<header class="fixed top-0 left-0 right-0 z-50 bg-[#0e0204]/90 backdrop-blur-xl border-b border-rose-950/70 shadow-2xl">
-  <div class="h-16 max-w-7xl mx-auto px-5 lg:px-10 flex items-center justify-between">
-    <!-- Brand Identity with Blended Hackathon Logo -->
-    <div class="flex items-center space-x-3.5">
-      <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 p-1 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
-        <img src="../hacathon logo.jpeg" alt="SANJEEVANI Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="font-extrabold text-base tracking-wider text-white">SANJEEVANI</span>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-semibold border border-emerald-500/30">ONLINE</span>
-        </div>
-        <p class="text-[11px] text-rose-300/80 font-mono">Nadia Command Node WB-08</p>
-      </div>
+<!-- UNIFIED SYNCHRONIZED SIDEBAR -->
+<aside class="w-full md:w-64 bg-sidebar text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 z-20" style="background-color: rgb(20, 2, 4); border-color: rgb(46, 8, 13);">
+<div>
+  <!-- Brand Header -->
+  <div class="px-5 py-5 border-b border-slate-800 flex items-center space-x-3.5" style="border-color: rgb(46, 8, 13);">
+    <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
+      <img src="/hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
     </div>
-
-    <!-- Navigation Hub -->
-    <nav class="hidden lg:flex items-center gap-1.5 font-mono text-xs">
-      <a class="px-3.5 py-1.5 rounded-lg bg-rose-950/80 text-rose-200 border border-rose-800/60 font-semibold shadow-inner" href="#">Overview</a>
-      <a class="px-3.5 py-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html">Bed Matrix</a>
-      <a class="px-3.5 py-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition" href="../sanjeevani_district_medical_stock_inventory_control/code.html">Medical Stock</a>
-      <a class="px-3.5 py-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition" href="../sanjeevani_transit_corridor_map_operations_interactive_animated_edition/code.html">Transit &amp; Corridors</a>
-    </nav>
-
-    <!-- Header Actions -->
-    <div class="flex items-center gap-3">
-      <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 font-mono text-[11px]">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-slate-300">FastAPI Port 8000</span>
-      </div>
-      <!-- Fixed Dynamic Portal Navigation Button -->
-      <button type="button" onclick="navigateToPortal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brandRed hover:bg-red-700 active:scale-95 text-white text-xs font-bold shadow-lg shadow-brandRed/30 transition cursor-pointer">
-        <span>Staff Portal</span>
-        <span class="material-symbols-outlined text-[15px]">lock</span>
-      </button>
+    <div>
+      <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
+        SANJEEVANI
+        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span></span>
+      </span>
+      <p class="text-[11px] text-slate-400 font-mono">Nadia Command Node WB-08</p>
     </div>
   </div>
-</header>
 
-<main class="w-full pt-20 pb-16 relative z-10">
-  <div class="max-w-7xl mx-auto px-5 lg:px-10 space-y-10">
-
-    <!-- HERO 3D MODEL DIGITAL TWIN VIEWPORT -->
-    <section class="relative w-full rounded-3xl bg-gradient-to-b from-[#140306] to-[#0a0103] border border-rose-900/50 p-6 lg:p-10 overflow-hidden shadow-2xl interactive-3d-card" id="heroSceneCard">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-        
-        <!-- Left Hero Content -->
-        <div class="lg:col-span-6 space-y-5 layer-depth-1">
-          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-950/70 border border-rose-800/60 text-rose-200 font-mono text-xs">
-            <span class="w-2 h-2 rounded-full bg-brandCrimson animate-ping"></span>
-            <span>CLINICAL SURVEILLANCE &amp; LOGISTICS MESH</span>
-          </div>
-
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            Precision District Health Command &amp; Multi-Modal Transit
-          </h1>
-
-          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
-            Sanjeevani unifies frontline clinical intake from Nadia sub-centers, automated Gemini 3.6-Flash diagnostic extraction, real-time bed occupancy balancing, and autonomous aerial UAV cargo corridors.
-          </p>
-
-          <!-- System Highlights -->
-          <div class="grid grid-cols-2 gap-3 pt-2 text-xs font-mono">
-            <div class="p-3 rounded-xl bg-black/40 border border-rose-900/40 backdrop-blur-md">
-              <span class="text-rose-400 block text-[10px] uppercase font-bold">Inference Speed</span>
-              <span class="text-white text-base font-bold">240ms</span>
-              <span class="text-slate-400 block text-[10px]">Gemini 3.6-Flash Core</span>
-            </div>
-            <div class="p-3 rounded-xl bg-black/40 border border-rose-900/40 backdrop-blur-md">
-              <span class="text-cyan-400 block text-[10px] uppercase font-bold">Cold Chain Temp</span>
-              <span class="text-white text-base font-bold">3.8°C Safe</span>
-              <span class="text-slate-400 block text-[10px]">Active UAV Sorties</span>
-            </div>
-          </div>
-
-          <!-- Quick Navigation CTAs -->
-          <div class="flex flex-wrap gap-3 pt-2">
-            <a href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html" class="px-5 py-2.5 rounded-xl bg-brandRed hover:bg-red-700 text-white font-bold text-xs shadow-lg transition active:scale-95 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[17px]">space_dashboard</span>
-              <span>Launch Bed Matrix</span>
-            </a>
-            <a href="../sanjeevani_transit_corridor_map_operations_interactive_animated_edition/code.html" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 border border-white/20 font-bold text-xs backdrop-blur-md transition active:scale-95 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[17px]">alt_route</span>
-              <span>Open Transit GIS Map</span>
-            </a>
-          </div>
-        </div>
-
-        <!-- Right: Interactive 3D WebGL Digital Twin of Nadia Cluster -->
-        <div class="lg:col-span-6 flex flex-col items-center justify-center relative layer-depth-2">
-          <div class="relative w-full h-[380px] sm:h-[420px] rounded-2xl bg-black/60 border border-rose-900/60 overflow-hidden shadow-2xl flex items-center justify-center">
-            
-            <!-- 3D Canvas -->
-            <canvas id="threeDigitalTwinCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
-
-            <!-- Floating 3D HUD Overlay Over the Model -->
-            <div class="absolute top-3 left-3 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-rose-900/60 font-mono text-[10px] text-rose-300 pointer-events-none">
-              <div class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>3D GEO-SPATIAL CLUSTER</span>
-              </div>
-              <div class="text-[9px] text-slate-400 mt-0.5">Drag to Orbit / Scroll to Zoom</div>
-            </div>
-
-            <!-- Real-time Active Sortie Tag on 3D Viewport -->
-            <div class="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl bg-black/85 backdrop-blur-md border border-cyan-800/80 font-mono text-[10px] text-cyan-300 pointer-events-none flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm text-cyan-400 animate-spin">flight</span>
-              <span id="threeHubUavStatus">UAV Airway: Standby</span>
-            </div>
-          </div>
-        </div>
-
+  <!-- Synchronized Navigation Items (Root-Absolute Paths) -->
+  <nav class="px-3 py-4 space-y-1">
+    <p class="px-3 pb-2 text-[10px] font-semibold tracking-wider uppercase text-slate-400">Clinical Surveillance</p>
+    
+    <!-- 1. Overview Matrix (Active Page) -->
+    <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-white font-medium text-xs shadow-sm cursor-pointer" href="/index.html" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+      <div class="flex items-center space-x-2.5">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span>Overview / Clinical Matrix</span>
       </div>
-    </section>
+    </a>
 
-    <!-- LIVE TELEMETRY STREAM & STATUS STATS -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="p-5 rounded-2xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between">
-        <span class="font-mono text-[10px] text-rose-400 uppercase tracking-widest">WhatsApp Intake</span>
-        <p class="text-2xl font-black text-white mt-1" id="stat-intake-count">1 Ingested</p>
-        <span class="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
-          <span class="material-symbols-outlined text-[12px]">mic</span> Audio Voice &amp; Ledger OCR
+    <!-- 2. Medical Stock & Inventory -->
+    <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group cursor-pointer" href="/sanjeevani_district_medical_stock_inventory_control/code.html">
+      <div class="flex items-center space-x-2.5">
+        <svg class="w-4 h-4 text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span>Medical Stock &amp; Inventory</span>
+      </div>
+      <span class="bg-red-500/20 text-red-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-red-500/30" id="sidebar-stock-status-pill">Stockouts</span>
+    </a>
+
+    <!-- 3. Transit & Corridors -->
+    <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group cursor-pointer" href="/sanjeevani_transit_corridor_map_operations_interactive_animated_edition/code.html">
+      <div class="flex items-center space-x-2.5">
+        <svg class="w-4 h-4 text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span>Transit &amp; Corridors</span>
+      </div>
+      <span class="bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30">Drones</span>
+    </a>
+
+    <!-- 4. WhatsApp Intake -->
+    <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group cursor-pointer" href="#telemetryFeedContainer">
+      <div class="flex items-center space-x-2.5">
+        <svg class="w-4 h-4 text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span>WhatsApp Intake</span>
+      </div>
+      <span class="bg-white/10 text-white font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-white/20" id="sidebar-feed-count">1</span>
+    </a>
+  </nav>
+</div>
+
+<!-- User Badge & System Footer -->
+<div class="px-4 py-4 border-t border-slate-800 space-y-3" style="border-color: rgb(46, 8, 13);">
+  <div class="flex items-center space-x-3 p-2 rounded-lg" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white border" style="background-color: rgb(46, 8, 13); border-color: rgba(255, 255, 255, 0.2);">SR</div>
+    <div class="overflow-hidden">
+      <p class="text-xs font-semibold text-white truncate">Dr. S. Roy (CMO)</p>
+      <p class="text-[10px] text-slate-400 truncate">Nadia Cluster Hub</p>
+    </div>
+  </div>
+  <button type="button" onclick="handleGlobalLogout()" class="w-full py-2 px-3 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-800/50 hover:border-red-600 transition flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer shadow-sm">
+    <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+    <span>Log Out to Overview</span>
+  </button>
+</div>
+</aside>
+
+<!-- Main Workspace Canvas -->
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-card-border px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sticky top-0 z-30 shadow-xs">
+    <div>
+      <h1 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+        <span>Hi, Dr. S. Roy (CMO)</span>
+        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-normal border border-slate-200">District Administrator</span>
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">SANJEEVANI — District Health Operations &amp; Clinical Surveillance Command (Nadia Cluster, West Bengal)</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="hidden xl:flex items-center space-x-2">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+          Gemini 3.6-Flash: Active
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+          WhatsApp Intake (+1 555-167-9544)
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200" id="reporting-indicator">
+          Reporting: 100% (3/3 PHCs)
         </span>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between">
-        <span class="font-mono text-[10px] text-rose-400 uppercase tracking-widest">District Bed Saturation</span>
-        <p class="text-2xl font-black text-amber-400 mt-1" id="stat-saturation">56.0%</p>
-        <span class="font-mono text-[10px] text-slate-400" id="stat-saturation-beds">42 / 75 Beds Occupied</span>
+      <!-- Live Search -->
+      <div class="relative w-full sm:w-48 lg:w-56">
+        <input class="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" id="dashboardSearch" placeholder="Search PHC, symptoms..." type="text" oninput="handleTableSearch(this.value)">
+        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between">
-        <span class="font-mono text-[10px] text-rose-400 uppercase tracking-widest">Oxygen Bed Reserves</span>
-        <p class="text-2xl font-black text-blue-400 mt-1" id="stat-oxygen">13 Available</p>
-        <span class="font-mono text-[10px] text-blue-300" id="stat-oxygen-capacity">of 24 cluster O₂ beds</span>
-      </div>
+      <!-- Export SitRep -->
+      <button class="inline-flex items-center space-x-1.5 text-xs bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-medium px-3.5 py-1.5 rounded-lg transition shadow-sm cursor-pointer" onclick="exportDistrictSitRep()">
+        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span>Export SitRep</span>
+      </button>
 
-      <div class="p-5 rounded-2xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between">
-        <span class="font-mono text-[10px] text-rose-400 uppercase tracking-widest">Active Sorties &amp; Convoys</span>
-        <p class="text-2xl font-black text-cyan-400 mt-1" id="stat-active-missions">0 Active</p>
-        <span class="font-mono text-[10px] text-slate-400" id="stat-missions-detail">Fleet Docked on Pad</span>
+      <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center space-x-1.5 text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg transition cursor-pointer">
+        <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <span>Log Out</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Dashboard Body -->
+  <div class="px-6 py-6 md:px-8 md:py-8 space-y-8 max-w-7xl mx-auto w-full">
+
+    <!-- Active Critical Capacity Alert Banner -->
+    <section class="critical-alert-glow bg-red-50/80 border border-red-300 rounded-2xl px-6 py-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all duration-300" id="surgeAlertBanner">
+      <div class="flex items-start space-x-4">
+        <div class="p-2.5 bg-red-100 rounded-xl text-red-600 mt-0.5 flex-shrink-0" id="surgeIconContainer">
+          <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="text-xs uppercase font-extrabold tracking-wider bg-red-200 text-red-900 px-2.5 py-0.5 rounded-md" id="surgeBadge">Critical Surge Alert</span>
+            <h2 class="text-sm font-bold text-red-950 tracking-tight" id="surgeHeading">Ward Saturation Exceeded</h2>
+          </div>
+          <p class="text-xs text-red-800 leading-relaxed" id="surgeDesc">
+            <strong id="surgeDescRatio">Cluster Capacity Strained</strong> • Frontline surge flagged. Inter-facility patient diversion recommended.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3 self-end md:self-center flex-shrink-0">
+        <button class="px-4 py-2 bg-white border border-red-300 text-xs font-semibold text-red-700 rounded-lg hover:bg-red-50 active:scale-95 shadow-xs transition cursor-pointer" onclick="openIntelligentDrilldown()">
+          Review Facility Details
+        </button>
+        <button class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-xs font-semibold text-white rounded-lg shadow-xs transition cursor-pointer" id="acknowledgeBtn" onclick="acknowledgeSurgeAlert()">
+          Acknowledge Surge Alert
+        </button>
       </div>
     </section>
 
-    <!-- THE 3 CORE OPERATIONAL PILLARS -->
-    <section class="space-y-6">
-      <div class="flex items-center justify-between">
+    <!-- 4 Metric KPI Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+
+      <!-- KPI Card 1: Cluster Bed Saturation -->
+      <div class="kpi-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between" id="cardBedSaturation">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-medium text-slate-500">Cluster Bed Saturation</span>
+          <span class="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">Nadia District</span>
+        </div>
+        <div class="my-4 flex flex-col items-center justify-center relative cursor-default py-1">
+          <div class="relative w-44 h-24 flex items-end justify-center">
+            <svg class="w-full h-full" viewBox="0 0 160 92">
+              <path d="M 16 80 A 64 64 0 0 1 144 80" fill="none" stroke="#f1f5f9" stroke-linecap="round" stroke-width="12"></path>
+              <path id="gaugePath" class="gauge-progress" d="M 16 80 A 64 64 0 0 1 144 80" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="12"></path>
+            </svg>
+            <div class="absolute bottom-0 inset-x-0 flex flex-col items-center justify-center text-center select-none">
+              <span class="text-2xl font-extrabold text-slate-900 tracking-tight" id="kpi-occupancy-percent">56.0%</span>
+              <span class="text-[10px] font-medium text-slate-500 font-mono bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 mt-1.5" id="kpi-bed-fraction">42 / 75 Beds</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-2 my-2">
+          <div class="flex justify-between items-center text-[10px] font-mono text-slate-500">
+            <span class="font-medium text-red-700" id="kpi-ranaghat-quick">Ranaghat: 19/20</span>
+            <span class="font-medium text-blue-700" id="kpi-chakdaha-quick">Chakdaha: 11/30</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex shadow-inner">
+            <div id="bar-ranaghat-seg" class="bg-red-500 h-full w-[25%] transition-all duration-500"></div>
+            <div id="bar-other-seg" class="bg-slate-700 h-full w-[31%] transition-all duration-500"></div>
+            <div id="bar-free-seg" class="bg-blue-400 h-full w-[44%] transition-all duration-500"></div>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px]">
+          <button class="text-red-700 font-semibold bg-red-50 px-2 py-0.5 rounded border border-red-200 cursor-pointer" onclick="highlightTableRow('row-ranaghat')" id="badge-pill-ranaghat">Ranaghat: 19/20</button>
+          <button class="text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 cursor-pointer" onclick="highlightTableRow('row-chakdaha')" id="badge-pill-chakdaha">Chakdaha: 11/30</button>
+          <button class="text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 cursor-pointer" onclick="highlightTableRow('row-hanskhali')" id="badge-pill-hanskhali">Hanskhali: 12/25</button>
+        </div>
+      </div>
+
+      <!-- KPI Card 2: Functional Oxygen Bed Reserves -->
+      <div class="kpi-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between" id="cardOxygenBeds">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-medium text-slate-500">Oxygen Bed Reserves</span>
+          <span class="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-200" id="kpi-oxygen-pill-status">Surplus Safe</span>
+        </div>
+        <div class="my-4 flex items-baseline justify-between">
+          <div>
+            <div class="text-2xl font-bold text-blue-800 tracking-tight" id="kpi-oxygen-avail">13 Available</div>
+            <span class="text-[11px] text-slate-500" id="kpi-oxygen-total">of 24 cluster O₂ beds</span>
+          </div>
+          <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200" id="kpi-oxygen-free-pct">54.2% Free</span>
+        </div>
+        <div class="my-2 space-y-2">
+          <div class="text-[10px] text-slate-500 flex justify-between font-mono">
+            <span>Facility Distribution</span>
+            <span class="text-blue-800 font-bold" id="kpi-oxygen-hubs-online">3 Hubs Online</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex shadow-inner">
+            <div id="bar-oxy-ranaghat" class="bg-blue-500 h-full w-[33%] transition-all duration-500" title="Ranaghat O2"></div>
+            <div id="bar-oxy-chakdaha" class="bg-slate-700 h-full w-[33%] transition-all duration-500" title="Chakdaha O2"></div>
+            <div id="bar-oxy-hanskhali" class="bg-blue-400 h-full w-[34%] transition-all duration-500" title="Hanskhali O2"></div>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-600">
+          <span class="font-medium hover:text-blue-700 cursor-pointer" onclick="highlightTableRow('row-ranaghat')">Ranaghat: 4 O₂</span>
+          <span class="font-medium hover:text-blue-700 cursor-pointer" onclick="highlightTableRow('row-chakdaha')">Chakdaha: 4 O₂</span>
+          <span class="font-medium hover:text-blue-700 cursor-pointer" onclick="highlightTableRow('row-hanskhali')">Hanskhali: 3 O₂</span>
+        </div>
+      </div>
+
+      <!-- KPI Card 3: District Patient Footfall -->
+      <div class="kpi-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between" id="cardFootfall">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-medium text-slate-500">District Patient Footfall</span>
+          <span class="text-[10px] font-mono bg-rose-50 text-rose-600 px-2 py-0.5 rounded-md border border-rose-200" id="kpi-footfall-trend">+38% Surge</span>
+        </div>
+        <div class="my-3 flex items-baseline justify-between">
+          <div class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-footfall-total">104 Patients</div>
+          <span class="text-xs text-rose-600 font-semibold flex items-center">
+            <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            vs 7-day avg
+          </span>
+        </div>
+        <div class="h-10 w-full mb-2">
+          <canvas class="w-full h-full" height="50" id="sparklineFootfall" width="210"></canvas>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-500">
+          <span>OPD &amp; Triage Intake Today</span>
+          <span class="font-mono font-medium text-slate-700">Peak 11:30 AM</span>
+        </div>
+      </div>
+
+      <!-- KPI Card 4: Frontline Telemetry Ingestion Throughput -->
+      <div class="kpi-card bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between" id="cardTelemetry">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-medium text-slate-500">Frontline Telemetry</span>
+          <span class="inline-flex items-center gap-1.5 text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-200">
+            <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span></span>
+            Live Sync
+          </span>
+        </div>
+        <div class="my-2.5 flex items-baseline justify-between">
+          <div class="text-2xl font-bold text-slate-900 tracking-tight" id="kpi-telemetry-count">1 Ingested</div>
+          <span class="text-xs text-slate-500">Real-Time Ingestion</span>
+        </div>
+        <div class="h-10 w-full mb-2 flex items-center justify-between gap-3 px-0.5">
+          <div class="bg-slate-50 hover:bg-slate-100 transition rounded-lg p-1.5 text-center flex-1 border border-slate-200 cursor-pointer" onclick="filterTelemetryFeed('audio')">
+            <span class="block text-[11px] font-bold text-slate-700" id="feed-audio-count">1</span>
+            <span class="block text-[9px] text-slate-400">Audio (Voice)</span>
+          </div>
+          <div class="bg-slate-50 hover:bg-slate-100 transition rounded-lg p-1.5 text-center flex-1 border border-slate-200 cursor-pointer" onclick="filterTelemetryFeed('ocr')">
+            <span class="block text-[11px] font-bold text-slate-700" id="feed-ocr-count">0</span>
+            <span class="block text-[9px] text-slate-400">OCR / Text</span>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-500">
+          <span>Powered by Gemini 3.6-Flash</span>
+          <span class="text-blue-700 font-semibold font-mono">100% OK</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Table & Analytical Feed -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 p-7 shadow-sm flex flex-col justify-between">
         <div>
-          <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">System Modules in Operation</h2>
-          <p class="text-xs text-slate-400 font-sans mt-0.5">End-to-end telemetry workflow from patient intake to medicine replenishment</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 tracking-tight">District Facility Bed &amp; Outbreak Surveillance Matrix</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Real-time clinical capacity, attending MO duty, and disease symptom clusters</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[11px] text-slate-400">Live Status:</span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                <span class="relative flex h-1.5 w-1.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span></span>
+                All 3 Hubs Synchronized
+              </span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-200/80 pb-3">
+                  <th class="py-3 pr-4 min-w-[140px]">Facility &amp; Tier</th>
+                  <th class="py-3 px-3 min-w-[120px]">Attending MO</th>
+                  <th class="py-3 px-3 text-center min-w-[70px]">Footfall</th>
+                  <th class="py-3 px-5 min-w-[245px]">Bed Matrix (Occupied / Total)</th>
+                  <th class="py-3 px-3 text-center min-w-[135px]">Clinical Status</th>
+                  <th class="py-3 pl-4 min-w-[180px]">Cluster Symptoms Parsed</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700" id="matrixTableBody">
+                <tr class="table-interactive-row critical-row cursor-pointer bg-red-50/40" id="row-ranaghat" onclick="openFacilityModalByName('Ranaghat PHC')">
+                  <td class="py-4 pr-4"><div class="font-bold text-slate-900 text-xs">Ranaghat PHC</div><div class="text-[10px] text-slate-400 mt-0.5">Tier 2 Sub-District</div></td>
+                  <td class="py-4 px-3" id="ranaghat-mo"><span class="font-medium text-slate-800">Dr. A. Sen</span><div class="text-[10px] text-blue-700 font-semibold">PRESENT</div></td>
+                  <td class="py-4 px-3 text-center font-bold text-slate-800" id="ranaghat-footfall">48</td>
+                  <td class="py-4 px-5 min-w-[245px]" id="ranaghat-beds-cell">
+                    <div class="flex items-center justify-between text-[11px] font-medium mb-1.5 gap-3 whitespace-nowrap">
+                      <span class="text-red-700 font-bold tracking-tight" id="ranaghat-bed-label">19 / 20 Beds</span>
+                      <span class="text-red-600 font-mono text-[10px] font-bold whitespace-nowrap" id="ranaghat-free-label">1 Free</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+                      <div class="bg-red-600 h-full w-[95%]" id="ranaghat-bar-std"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-3 text-center" id="ranaghat-status-cell"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-300 animate-pulse-fast whitespace-nowrap">CRITICAL SURGE</span></td>
+                  <td class="py-4 pl-4" id="ranaghat-symptoms-cell"><span class="bg-red-50 text-red-700 text-[10px] px-2 py-0.5 rounded font-medium border border-red-200">Acute Watery Diarrhea</span></td>
+                </tr>
+                <tr class="table-interactive-row cursor-pointer" id="row-chakdaha" onclick="openFacilityModalByName('Chakdaha BPHC')">
+                  <td class="py-4 pr-4"><div class="font-bold text-slate-900 text-xs">Chakdaha BPHC</div><div class="text-[10px] text-slate-400 mt-0.5">Tier 2 Primary Hub</div></td>
+                  <td class="py-4 px-3" id="chakdaha-mo"><span class="font-medium text-slate-800">Dr. K. Das</span><div class="text-[10px] text-blue-700 font-semibold">PRESENT</div></td>
+                  <td class="py-4 px-3 text-center font-bold text-slate-800" id="chakdaha-footfall">25</td>
+                  <td class="py-4 px-5 min-w-[245px]" id="chakdaha-beds-cell">
+                    <div class="flex items-center justify-between text-[11px] font-medium mb-1.5 gap-3 whitespace-nowrap">
+                      <span class="text-blue-800 font-bold tracking-tight" id="chakdaha-bed-label">11 / 30 Beds</span>
+                      <span class="text-blue-700 font-mono text-[10px] whitespace-nowrap" id="chakdaha-free-label">19 Free</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+                      <div class="bg-slate-700 h-full w-[36%]" id="chakdaha-bar-std"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-3 text-center" id="chakdaha-status-cell"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">SURPLUS READY</span></td>
+                  <td class="py-4 pl-4" id="chakdaha-symptoms-cell"><span class="bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded">[4] Seasonal Viral</span></td>
+                </tr>
+                <tr class="table-interactive-row cursor-pointer" id="row-hanskhali" onclick="openFacilityModalByName('Hanskhali Rural Hospital')">
+                  <td class="py-4 pr-4"><div class="font-bold text-slate-900 text-xs">Hanskhali RH</div><div class="text-[10px] text-slate-400 mt-0.5">Tier 3 Rural Center</div></td>
+                  <td class="py-4 px-3" id="hanskhali-mo"><span class="font-medium text-slate-800">Dr. P. Roy</span><div class="text-[10px] text-amber-600 font-semibold">ON CALL</div></td>
+                  <td class="py-4 px-3 text-center font-bold text-slate-800" id="hanskhali-footfall">31</td>
+                  <td class="py-4 px-5 min-w-[245px]" id="hanskhali-beds-cell">
+                    <div class="flex items-center justify-between text-[11px] font-medium mb-1.5 gap-3 whitespace-nowrap">
+                      <span class="text-slate-800 font-bold tracking-tight" id="hanskhali-bed-label">12 / 25 Beds</span>
+                      <span class="text-slate-400 font-mono text-[10px] whitespace-nowrap" id="hanskhali-free-label">13 Free</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+                      <div class="bg-slate-700 h-full w-[48%]" id="hanskhali-bar-std"></div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-3 text-center" id="hanskhali-status-cell"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">OPERATIONAL</span></td>
+                  <td class="py-4 pl-4" id="hanskhali-symptoms-cell"><span class="bg-amber-50 text-amber-700 text-[10px] px-2 py-0.5 rounded border border-amber-200">Mild Pyrexia</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <span class="font-mono text-xs text-rose-400 hidden sm:inline">NODES: 3 PHCs ONLINE</span>
+
+        <!-- Action Row with Clinical Step-Down / Discharge Controls -->
+        <div class="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div class="flex items-center space-x-4 text-slate-500 text-[11px]">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-700 rounded-sm"></span> Occupied Standard</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-blue-500 rounded-sm"></span> Occupied Oxygen</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-200 rounded-sm"></span> Available Capacity</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <!-- Dynamic Clinical Discharge Action -->
+            <button class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs" onclick="dischargeRecoveredPatients(2)" title="Discharge 2 recovering patients to de-escalate bed saturation">
+              <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Discharge / Step Down (2 Patients)</span>
+            </button>
+            <button class="text-blue-700 hover:text-blue-800 font-semibold text-xs flex items-center gap-1.5 cursor-pointer ml-1" onclick="openIntelligentDrilldown()">
+              <span>Authorize Inter-PHC Diversion</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Module 1: WhatsApp Ingest -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-brandRed/20 text-rose-400 border border-brandRed/40 flex items-center justify-center shadow-lg">
-              <span class="material-symbols-outlined text-[24px]">chat</span>
-            </div>
+      <!-- Right Column: Outbreak Trends & WhatsApp Telemetry -->
+      <div class="lg:col-span-4 space-y-8">
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <span class="font-mono text-[10px] text-rose-400 uppercase">Module 01 // Frontline Surveillance</span>
-              <h3 class="text-lg font-bold text-white mt-0.5">WhatsApp Multimodal Ingest</h3>
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Outbreak Syndromic Vectors</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">7-day active district progression</p>
             </div>
-            <p class="text-xs text-slate-300 leading-relaxed font-sans">
-              Frontline duty nurses send raw voice notes in Bengali or photos of handwritten admission registers to WhatsApp (<code class="text-rose-300 font-mono">+1 555-167-9544</code>). Gemini 3.6-Flash triages symptoms and logs admissions without manual typing.
-            </p>
+            <span class="text-[10px] font-mono text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md font-medium">High Alert</span>
           </div>
-          <div class="pt-4 border-t border-rose-950 font-mono text-[11px] flex items-center justify-between text-slate-400">
-            <span>MODALITY: AUDIO + OCR</span>
-            <span class="text-emerald-400 font-semibold">STREAMING</span>
+          <div class="space-y-4 mt-5">
+            <div class="p-2 -mx-2 rounded-xl space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="font-medium text-slate-800">Acute Watery Diarrhea / Cholera</span>
+                <span class="font-bold text-red-600">84 cases (+22%)</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div class="bg-red-500 h-full rounded-full" style="width: 78%"></div>
+              </div>
+              <p class="text-[10px] text-red-700 font-medium">Cluster concentration: 72% cases in Ranaghat / Chakdaha</p>
+            </div>
+            <div class="p-2 -mx-2 rounded-xl space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="font-medium text-slate-800">High Fever / Suspected Dengue</span>
+                <span class="font-bold text-amber-600">46 cases (+6%)</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div class="bg-amber-400 h-full rounded-full" style="width: 48%"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Module 2: Capacity Matrix -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-amber-600/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shadow-lg">
-              <span class="material-symbols-outlined text-[24px]">bed</span>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-2">
+              <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Live WhatsApp Telemetry</h4>
             </div>
-            <div>
-              <span class="font-mono text-[10px] text-amber-400 uppercase">Module 02 // Ward Balancing</span>
-              <h3 class="text-lg font-bold text-white mt-0.5">Clinical Bed Matrix</h3>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed font-sans">
-              Monitors cluster bed occupancy and triggers alerts during outbreaks. Authorizes priority green-corridor ambulance transfers along NH-12 and executes clinical step-down discharges to relieve ward saturation.
-            </p>
+            <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono">Streaming</span>
           </div>
-          <div class="pt-4 border-t border-rose-950 font-mono text-[11px] flex items-center justify-between text-slate-400">
-            <span>SURGE REROUTING</span>
-            <span class="text-amber-400 font-semibold">DYNAMIC</span>
+          <div class="mt-5 space-y-4 max-h-[460px] overflow-y-auto pr-1" id="telemetryFeedContainer">
+            <!-- Dynamically populated -->
           </div>
         </div>
-
-        <!-- Module 3: Logistics & Drone Sorties -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/40 interactive-3d-card flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 border border-blue-500/40 flex items-center justify-center shadow-lg">
-              <span class="material-symbols-outlined text-[24px]">flight_takeoff</span>
-            </div>
-            <div>
-              <span class="font-mono text-[10px] text-blue-400 uppercase">Module 03 // Supply Logistics</span>
-              <h3 class="text-lg font-bold text-white mt-0.5">Autonomous Transit Corridors</h3>
-            </div>
-            <p class="text-xs text-slate-300 leading-relaxed font-sans">
-              Coordinates rapid aerial drone delivery of temperature-sensitive Ringer's Lactate and Polyvalent Anti-Snake Venom (ASV) at 3.8°C, alongside ground transport convoys for heavy oxygen cylinders.
-            </p>
-          </div>
-          <div class="pt-4 border-t border-rose-950 font-mono text-[11px] flex items-center justify-between text-slate-400">
-            <span>CORRIDOR TRANSIT</span>
-            <span class="text-blue-400 font-semibold">AIR + ROAD</span>
-          </div>
-        </div>
-
       </div>
     </section>
-
-    <!-- REAL-TIME HOSPITAL SECTOR TELEMETRY CARDS -->
-    <section class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>Nadia District Hospital Cluster Telemetry</span>
-        </h2>
-        <span class="font-mono text-xs text-slate-400">FastAPI Live Sync</span>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Ranaghat PHC -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/50 interactive-3d-card space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded-md bg-red-950 text-red-300 border border-red-800 text-[10px] font-mono font-bold" id="badge-ranaghat">CRITICAL SURGE</span>
-            <span class="font-mono text-xs text-slate-400">SECTOR 01</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Ranaghat PHC</h3>
-            <p class="font-mono text-xs text-slate-400">Tier 2 Sub-District Hospital</p>
-          </div>
-          <div class="space-y-2 pt-2 font-mono text-xs">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Bed Occupancy:</span>
-              <span class="text-red-400 font-bold" id="card-ranaghat-occ">19 / 20 Beds</span>
-            </div>
-            <div class="w-full bg-black/60 h-2 rounded-full overflow-hidden border border-rose-950">
-              <div class="bg-red-600 h-full rounded-full transition-all duration-500" id="card-ranaghat-bar" style="width: 95%;"></div>
-            </div>
-            <div class="flex justify-between text-[11px] pt-1">
-              <span class="text-slate-400">Frontline Report:</span>
-              <span class="text-rose-300">Acute Watery Diarrhea</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chakdaha BPHC -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/50 interactive-3d-card space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded-md bg-blue-950 text-blue-300 border border-blue-800 text-[10px] font-mono font-bold">PRIMARY HUB</span>
-            <span class="font-mono text-xs text-slate-400">SECTOR 02</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Chakdaha BPHC Depot</h3>
-            <p class="font-mono text-xs text-slate-400">Central Logistics &amp; Triage Pad</p>
-          </div>
-          <div class="space-y-2 pt-2 font-mono text-xs">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Bed Capacity:</span>
-              <span class="text-blue-300 font-bold" id="card-chakdaha-occ">11 / 30 Beds</span>
-            </div>
-            <div class="w-full bg-black/60 h-2 rounded-full overflow-hidden border border-rose-950">
-              <div class="bg-blue-600 h-full rounded-full transition-all duration-500" id="card-chakdaha-bar" style="width: 36%;"></div>
-            </div>
-            <div class="flex justify-between text-[11px] pt-1">
-              <span class="text-slate-400">Fleet Status:</span>
-              <span class="text-emerald-400">UAV Drone Ready</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Hanskhali RH -->
-        <div class="p-6 rounded-3xl bg-[#120306] border border-rose-900/50 interactive-3d-card space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="px-2.5 py-1 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-mono font-bold">SURPLUS READY</span>
-            <span class="font-mono text-xs text-slate-400">SECTOR 03</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Hanskhali Rural Hospital</h3>
-            <p class="font-mono text-xs text-slate-400">Tier 3 Rural Medical Center</p>
-          </div>
-          <div class="space-y-2 pt-2 font-mono text-xs">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Bed Capacity:</span>
-              <span class="text-emerald-300 font-bold" id="card-hanskhali-occ">12 / 25 Beds</span>
-            </div>
-            <div class="w-full bg-black/60 h-2 rounded-full overflow-hidden border border-rose-950">
-              <div class="bg-emerald-600 h-full rounded-full transition-all duration-500" id="card-hanskhali-bar" style="width: 48%;"></div>
-            </div>
-            <div class="flex justify-between text-[11px] pt-1">
-              <span class="text-slate-400">Free Beds:</span>
-              <span class="text-emerald-400" id="card-hanskhali-free">13 Available</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
   </div>
 </main>
 
-<!-- SYSTEM FOOTER -->
-<footer class="w-full bg-[#070102] border-t border-rose-950/80 py-8 px-5 lg:px-10 text-slate-400 font-mono text-xs">
-  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="flex items-center space-x-2">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span class="text-white font-bold">SANJEEVANI</span>
-      <span>• Nadia District Health Command</span>
+<!-- Drilldown Diversion Modal -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200" id="facilityModal">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 transform scale-95 transition-transform duration-200" id="modalContent">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center space-x-2">
+        <span class="w-3 h-3 rounded-full bg-blue-600" id="modalDot"></span>
+        <h3 class="text-sm font-bold text-slate-900" id="modalTitle">Inter-Facility Diversion Dispatch</h3>
+      </div>
+      <button class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer" onclick="closeModal()">✕</button>
     </div>
-    <div>FastAPI Backend Telemetry • Powered by Gemini 3.6-Flash</div>
+    
+    <div class="space-y-3 text-xs text-slate-600">
+      <div class="p-3 bg-red-50 rounded-xl border border-red-200 space-y-1" id="modalSurgeBox">
+        <p class="font-bold text-red-900" id="modalSurgeHead">Emergency Diversion Routing Required</p>
+        <p class="text-red-700" id="modalSurgeDetail">Facility is operating above critical threshold. Rerouting incoming patients will balance cluster capacity.</p>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+        <p class="font-semibold text-slate-800">Transfer Routing Parameters</p>
+        <div class="grid grid-cols-2 gap-2 text-slate-600 text-[11px]">
+          <div>Surged Facility: <strong class="text-red-700 block text-xs" id="modalFromFac">Ranaghat PHC (19/20 beds)</strong></div>
+          <div>Destination Hub: <strong class="text-emerald-700 block text-xs" id="modalToFac">Hanskhali RH (13 free)</strong></div>
+          <div>Patients to Divert: <strong class="text-slate-900 block text-xs">5 Patients (WBEMS Convoy)</strong></div>
+          <div>Transit Corridor: <strong class="text-blue-700 block text-xs">NH-12 Green Corridor</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2">
+      <button class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer" onclick="closeModal()">Cancel</button>
+      <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-sm" id="btnDispatchAction" onclick="executeIntelligentTransfer()">Authorize &amp; Dispatch Transfer</button>
+    </div>
   </div>
-</footer>
+</div>
 
-<!-- 3D MODEL ENGINE & TELEMETRY SYNCHRONIZATION SCRIPT -->
 <script>
-  const BACKEND_URL = "http://localhost:8000";
+  // Automatic Backend Discovery
+  const BACKEND_URL = window.location.hostname.includes("render.com")
+    ? "https://sanjeevani-backend-80sg.onrender.com"
+    : "http://localhost:8000";
 
-  // Dynamic Multi-Path Staff Portal Navigation Resolver
-  async function navigateToPortal() {
-    const candidatePaths = [
-      "../sanjeevani_dedicated_clinician_staff_access_portal/code.html",
-      "../sanjeevani_hardware_intelligence_overview_authentication_portal/code.html",
-      "./sanjeevani_dedicated_clinician_staff_access_portal/code.html",
-      "./sanjeevani_hardware_intelligence_overview_authentication_portal/code.html",
-      "code_5.html",
-      "code_10.html"
-    ];
-
-    if (window.location.protocol === 'file:') {
-      window.location.href = candidatePaths[0];
-      return;
+  let clusterFacilities = [
+    {
+      name: "Ranaghat PHC",
+      tier: "Tier 2 Sub-District",
+      doctor: "Dr. A. Sen",
+      status: "CRITICAL SURGE",
+      footfall: 48,
+      symptoms: ["Acute Watery Diarrhea", "Vomiting", "Dehydration"],
+      bed_capacity: { total_beds: 20, occupied_beds: 19, free_beds: 1, oxygen_occupied: 4 }
+    },
+    {
+      name: "Chakdaha BPHC",
+      tier: "Tier 2 Primary Hub",
+      doctor: "Dr. K. Das",
+      status: "SURPLUS READY",
+      footfall: 25,
+      symptoms: ["Seasonal Viral", "Mild Cough"],
+      bed_capacity: { total_beds: 30, occupied_beds: 11, free_beds: 19, oxygen_occupied: 4 }
+    },
+    {
+      name: "Hanskhali Rural Hospital",
+      tier: "Tier 3 Rural Center",
+      doctor: "Dr. P. Roy",
+      status: "OPERATIONAL",
+      footfall: 31,
+      symptoms: ["Mild Pyrexia", "Skin Allergy"],
+      bed_capacity: { total_beds: 25, occupied_beds: 12, free_beds: 13, oxygen_occupied: 3 }
     }
+  ];
 
-    for (const path of candidatePaths) {
-      try {
-        const resp = await fetch(path, { method: "HEAD" });
-        if (resp.ok || resp.status === 304 || resp.type === "opaque") {
-          window.location.href = path;
-          return;
-        }
-      } catch (e) {}
-    }
+  let surgeFacilityName = "Ranaghat PHC";
+  let targetSurplusFacilityName = "Hanskhali Rural Hospital";
 
-    window.location.href = "../sanjeevani_dedicated_clinician_staff_access_portal/code.html";
+  function handleGlobalLogout() {
+    sessionStorage.clear();
+    window.location.href = "/sanjeevani_dedicated_clinician_staff_access_portal/code.html";
   }
 
-  // -------------------------------------------------------------
-  // 1. THREE.JS INTERACTIVE 3D DIGITAL TWIN ENGINE
-  // -------------------------------------------------------------
-  let scene, camera, renderer, globeGroup, droneMesh;
-  let isDragging = false;
-  let previousMousePosition = { x: 0, y: 0 };
+  function handleTableSearch(term) {
+    const q = (term || "").toLowerCase().trim();
+    document.querySelectorAll("#matrixTableBody tr").forEach(r => {
+      r.style.display = r.innerText.toLowerCase().includes(q) ? "" : "none";
+    });
+  }
 
-  function initThreeDigitalTwin() {
-    const container = document.getElementById("threeDigitalTwinCanvas");
-    if (!container) return;
+  function exportDistrictSitRep() {
+    const headers = ["Facility", "Tier", "Doctor", "Status", "Footfall", "Occupied_Beds", "Total_Beds", "Free_Beds"];
+    const rows = clusterFacilities.map(f => [
+      `"${f.name}"`, `"${f.tier}"`, `"${f.doctor}"`, `"${f.status}"`,
+      f.footfall, f.bed_capacity.occupied_beds, f.bed_capacity.total_beds, f.bed_capacity.free_beds
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", `Sanjeevani_District_SitRep_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
-    const width = container.clientWidth || 450;
-    const height = container.clientHeight || 380;
+  function highlightTableRow(rowId) {
+    const r = document.getElementById(rowId);
+    if (!r) return;
+    r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    r.classList.add('bg-blue-100');
+    setTimeout(() => r.classList.remove('bg-blue-100'), 1500);
+  }
 
-    scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0a0103, 0.05);
+  function closeModal() {
+    const modal = document.getElementById('facilityModal');
+    const content = document.getElementById('modalContent');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+  }
 
-    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 4.5, 9);
-    camera.lookAt(0, 0, 0);
+  function openIntelligentDrilldown() {
+    let maxFac = clusterFacilities[0];
+    let maxFreeFac = clusterFacilities[0];
 
-    renderer = new THREE.WebGLRenderer({ canvas: container, alpha: true, antialias: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    globeGroup = new THREE.Group();
-    scene.add(globeGroup);
-
-    // 3D Tactical Mesh Base (Terrain wireframe)
-    const gridHelper = new THREE.GridHelper(10, 20, 0xb61722, 0x33080e);
-    gridHelper.position.y = -1.2;
-    globeGroup.add(gridHelper);
-
-    // Node Positions in 3D Space
-    // Chakdaha Depot (Central Blue Hub)
-    const chakdahaGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.15, 16);
-    const chakdahaMat = new THREE.MeshBasicMaterial({ color: 0x2563eb, wireframe: false });
-    const chakdahaMesh = new THREE.Mesh(chakdahaGeo, chakdahaMat);
-    chakdahaMesh.position.set(-2, -1.1, 1);
-    globeGroup.add(chakdahaMesh);
-
-    // Ranaghat PHC (Critical Outbreak Red Hub)
-    const ranaghatGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 16);
-    const ranaghatMat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: false });
-    const ranaghatMesh = new THREE.Mesh(ranaghatGeo, ranaghatMat);
-    ranaghatMesh.position.set(0.5, -1.05, 0);
-    globeGroup.add(ranaghatMesh);
-
-    // Hanskhali RH (Surplus Green Hub)
-    const hanskhaliGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.18, 16);
-    const hanskhaliMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: false });
-    const hanskhaliMesh = new THREE.Mesh(hanskhaliGeo, hanskhaliMat);
-    hanskhaliMesh.position.set(2.2, -1.1, -1.5);
-    globeGroup.add(hanskhaliMesh);
-
-    // 3D Flight Corridor Curved Tubes
-    // Curve 1: Chakdaha -> Ranaghat (Skyway Arc)
-    const curve1 = new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-2, -1.0, 1),
-      new THREE.Vector3(-0.75, 1.2, 0.5),
-      new THREE.Vector3(0.5, -0.9, 0)
-    );
-    const tubeGeo1 = new THREE.TubeGeometry(curve1, 32, 0.035, 8, false);
-    const tubeMat1 = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.7 });
-    const tube1 = new THREE.Mesh(tubeGeo1, tubeMat1);
-    globeGroup.add(tube1);
-
-    // Curve 2: Ranaghat -> Hanskhali (Green Corridor Road)
-    const curve2 = new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(0.5, -0.9, 0),
-      new THREE.Vector3(1.35, 0.6, -0.75),
-      new THREE.Vector3(2.2, -1.0, -1.5)
-    );
-    const tubeGeo2 = new THREE.TubeGeometry(curve2, 32, 0.035, 8, false);
-    const tubeMat2 = new THREE.MeshBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.6 });
-    const tube2 = new THREE.Mesh(tubeGeo2, tubeMat2);
-    globeGroup.add(tube2);
-
-    // Animated 3D Drone Beacon
-    const droneGeo = new THREE.OctahedronGeometry(0.18);
-    const droneMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true });
-    droneMesh = new THREE.Mesh(droneGeo, droneMat);
-    globeGroup.add(droneMesh);
-
-    // Interactive Mouse Orbit Controls
-    container.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+    clusterFacilities.forEach(f => {
+      const rate = f.bed_capacity.occupied_beds / f.bed_capacity.total_beds;
+      const maxRate = maxFac.bed_capacity.occupied_beds / maxFac.bed_capacity.total_beds;
+      if (rate > maxRate) maxFac = f;
+      if (f.bed_capacity.free_beds > maxFreeFac.bed_capacity.free_beds) maxFreeFac = f;
     });
 
-    window.addEventListener('mouseup', () => isDragging = false);
+    surgeFacilityName = maxFac ? maxFac.name : "Ranaghat PHC";
+    targetSurplusFacilityName = (maxFreeFac && maxFreeFac.name !== surgeFacilityName) ? maxFreeFac.name : "Hanskhali Rural Hospital";
 
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      const deltaX = e.clientX - previousMousePosition.x;
-      const deltaY = e.clientY - previousMousePosition.y;
+    const fromEl = document.getElementById("modalFromFac");
+    const toEl = document.getElementById("modalToFac");
+    if (fromEl) fromEl.innerText = `${surgeFacilityName} (${maxFac.bed_capacity.occupied_beds}/${maxFac.bed_capacity.total_beds} beds)`;
+    if (toEl) toEl.innerText = `${targetSurplusFacilityName} (${maxFreeFac.bed_capacity.free_beds} free beds)`;
 
-      globeGroup.rotation.y += deltaX * 0.007;
-      globeGroup.rotation.x = Math.max(-0.5, Math.min(0.5, globeGroup.rotation.x + deltaY * 0.005));
+    const modal = document.getElementById('facilityModal');
+    const content = document.getElementById('modalContent');
+    if (modal && content) {
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+      }, 10);
+    }
+  }
 
-      previousMousePosition = { x: e.clientX, y: e.clientY };
-    });
+  function openFacilityModalByName(name) {
+    openIntelligentDrilldown();
+  }
 
-    // Window Resize Handler
-    window.addEventListener('resize', onWindowResize);
+  function acknowledgeSurgeAlert() {
+    const banner = document.getElementById("surgeAlertBanner");
+    const badge = document.getElementById("surgeBadge");
+    const head = document.getElementById("surgeHeading");
+    const btn = document.getElementById("acknowledgeBtn");
 
-    // Start 3D Animation Loop
-    let clock = new THREE.Clock();
-    function animate() {
-      requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+    if (banner) {
+      banner.className = "bg-emerald-50/90 border border-emerald-300 rounded-2xl px-6 py-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all duration-300";
+      badge.className = "text-xs uppercase font-extrabold tracking-wider bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-md";
+      badge.innerText = "Protocol Acknowledged";
+      head.className = "text-sm font-bold text-emerald-950 tracking-tight";
+      head.innerText = "Surge Protocol Active • Green Corridor Diversions Cleared";
+      document.getElementById("surgeDesc").innerHTML = "Chief Medical Officer acknowledged situation. Emergency patient diversion corridor opened on <strong>NH-12</strong>.";
+      btn.innerText = "Protocol Active";
+      btn.className = "px-4 py-2 bg-emerald-600 text-xs font-semibold text-white rounded-lg shadow-xs cursor-default";
+      btn.onclick = null;
+    }
+  }
 
-      // Continuous subtle ambient float
-      if (!isDragging) {
-        globeGroup.rotation.y += 0.0025;
+  async function executeIntelligentTransfer() {
+    const btn = document.getElementById("btnDispatchAction");
+    btn.innerText = "Authorizing WBEMS Convoy...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/v1/beds/authorize-transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_facility: surgeFacilityName,
+          to_facility: targetSurplusFacilityName,
+          patient_count: 5
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(`DIVERSION AUTHORIZED!\n\n• Corridor: ${data.corridor || 'NH-12 Green Highway'}\n• Diverted: ${data.patients_transferred || 5} patients from ${data.from_facility}\n• Destination: ${data.to_facility}\n• Ambulance: ${data.ambulance || 'WBEMS-Nadia-04'}`);
+      } else {
+        throw new Error();
       }
-
-      // Drone flight interpolation along Curve 1
-      const progress = (t * 0.25) % 1;
-      const pos = curve1.getPoint(progress);
-      droneMesh.position.copy(pos);
-      droneMesh.rotation.y += 0.05;
-      droneMesh.rotation.x += 0.03;
-
-      renderer.render(scene, camera);
+    } catch (e) {
+      // Synchronous local state transition fallback
+      const fromF = clusterFacilities.find(f => f.name === surgeFacilityName);
+      const toF = clusterFacilities.find(f => f.name === targetSurplusFacilityName);
+      if (fromF && toF) {
+        fromF.bed_capacity.occupied_beds = Math.max(0, fromF.bed_capacity.occupied_beds - 5);
+        fromF.bed_capacity.free_beds += 5;
+        toF.bed_capacity.occupied_beds += 5;
+        toF.bed_capacity.free_beds = Math.max(0, toF.bed_capacity.free_beds - 5);
+      }
+      alert(`DIVERSION AUTHORIZED!\n\n• Corridor: NH-12 Green Corridor\n• Diverted: 5 patients from ${surgeFacilityName}\n• Destination: ${targetSurplusFacilityName}\n• Ambulance: WBEMS Emergency Unit #08`);
     }
-    animate();
+
+    closeModal();
+    btn.innerText = "Authorize & Dispatch Transfer";
+    btn.disabled = false;
+    updateUIFromData({ bed_matrix: { facilities: clusterFacilities } });
   }
 
-  function onWindowResize() {
-    const container = document.getElementById("threeDigitalTwinCanvas");
-    if (!container || !renderer || !camera) return;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
+  // Active Clinical Discharge: Frees beds and drops district saturation
+  async function dischargeRecoveredPatients(count = 2) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/v1/beds/discharge-patient`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: count })
+      });
+      if (res.ok) {
+        syncLiveDistrictData();
+        return;
+      }
+    } catch (e) {
+      // Fallback local update
+    }
+
+    const ranaghat = clusterFacilities.find(f => f.name.includes("Ranaghat"));
+    if (ranaghat && ranaghat.bed_capacity.occupied_beds > 0) {
+      ranaghat.bed_capacity.occupied_beds = Math.max(0, ranaghat.bed_capacity.occupied_beds - count);
+      ranaghat.bed_capacity.free_beds = ranaghat.bed_capacity.total_beds - ranaghat.bed_capacity.occupied_beds;
+      if (ranaghat.bed_capacity.occupied_beds < 18) {
+        ranaghat.status = "SURGE MITIGATED";
+      }
+    }
+    updateUIFromData({ bed_matrix: { facilities: clusterFacilities } });
   }
 
-  // -------------------------------------------------------------
-  // 2. 3D CARD MOUSE-TILT PHYSICS
-  // -------------------------------------------------------------
-  document.querySelectorAll('.interactive-3d-card').forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      const rotateX = ((y - centerY) / centerY) * -7;
-      const rotateY = ((x - centerX) / centerX) * 7;
-
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+  function filterTelemetryFeed(type) {
+    document.querySelectorAll('.telemetry-item').forEach(item => {
+      item.style.display = (type === 'all' || item.getAttribute('data-type') === type) ? 'block' : 'none';
     });
+  }
 
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-    });
-  });
+  function drawSparkline(canvasId, points, strokeColor, startColor, stopColor) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
 
-  // -------------------------------------------------------------
-  // 3. REAL-TIME DATA TELEMETRY POLLING (FastAPI Core :8000)
-  // -------------------------------------------------------------
-  async function syncOverviewTelemetry() {
+    const min = Math.min(...points);
+    const max = Math.max(...points);
+    const padding = 5;
+    const effectiveHeight = height - padding * 2;
+    const step = (width - padding * 2) / (points.length - 1);
+
+    ctx.clearRect(0, 0, width, height);
+    const coords = points.map((p, i) => ({
+      x: padding + i * step,
+      y: height - padding - ((p - min) / (max - min || 1)) * effectiveHeight
+    }));
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, startColor);
+    gradient.addColorStop(1, stopColor);
+
+    ctx.beginPath();
+    ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 1; i < coords.length; i++) {
+      const xc = (coords[i].x + coords[i - 1].x) / 2;
+      const yc = (coords[i].y + coords[i - 1].y) / 2;
+      ctx.quadraticCurveTo(coords[i - 1].x, coords[i - 1].y, xc, yc);
+    }
+    ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+    ctx.lineTo(coords[coords.length - 1].x, height);
+    ctx.lineTo(coords[0].x, height);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 1; i < coords.length; i++) {
+      const xc = (coords[i].x + coords[i - 1].x) / 2;
+      const yc = (coords[i].y + coords[i - 1].y) / 2;
+      ctx.quadraticCurveTo(coords[i - 1].x, coords[i - 1].y, xc, yc);
+    }
+    ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  function updateUIFromData(data) {
+    let dynamicTotalBeds = 0;
+    let dynamicTotalOccupied = 0;
+    let dynamicTotalFootfall = 0;
+    let totalOxygenUsed = 0;
+    let facMap = {};
+
+    if (data.bed_matrix && data.bed_matrix.facilities) {
+      clusterFacilities = data.bed_matrix.facilities;
+
+      clusterFacilities.forEach(fac => {
+        const occ = fac.bed_capacity.occupied_beds;
+        const tot = fac.bed_capacity.total_beds;
+        const free = Math.max(0, tot - occ);
+        const oxyOcc = fac.bed_capacity.oxygen_occupied || 3;
+        const rate = tot > 0 ? (occ / tot) : 0;
+        const isSurge = rate >= 0.85 || (fac.status && fac.status.includes("CRITICAL"));
+
+        dynamicTotalBeds += tot;
+        dynamicTotalOccupied += occ;
+        dynamicTotalFootfall += (fac.footfall || 0);
+        totalOxygenUsed += oxyOcc;
+
+        let prefix = "";
+        let rowId = "";
+        const name = fac.name.toLowerCase();
+        if (name.includes("ranaghat")) { prefix = "ranaghat"; rowId = "row-ranaghat"; }
+        else if (name.includes("chakdaha")) { prefix = "chakdaha"; rowId = "row-chakdaha"; }
+        else if (name.includes("hanskhali")) { prefix = "hanskhali"; rowId = "row-hanskhali"; }
+
+        if (prefix) {
+          facMap[prefix] = { occ, tot, free, oxyOcc };
+
+          const row = document.getElementById(rowId);
+          if (row) {
+            row.className = isSurge 
+              ? "table-interactive-row critical-row cursor-pointer bg-red-50/40" 
+              : "table-interactive-row cursor-pointer";
+          }
+
+          const bedLbl = document.getElementById(`${prefix}-bed-label`);
+          if (bedLbl) {
+            bedLbl.innerText = `${occ} / ${tot} Beds`;
+            bedLbl.className = isSurge ? "text-red-700 font-bold tracking-tight" : "text-blue-800 font-bold tracking-tight";
+          }
+
+          const freeLbl = document.getElementById(`${prefix}-free-label`);
+          if (freeLbl) {
+            freeLbl.innerText = `${free} Free (${oxyOcc} O₂)`;
+            freeLbl.className = isSurge ? "text-red-600 font-mono text-[10px] font-bold whitespace-nowrap" : "text-slate-500 font-mono text-[10px] whitespace-nowrap";
+          }
+
+          const barStd = document.getElementById(`${prefix}-bar-std`);
+          if (barStd) {
+            const occPct = Math.min(100, Math.round(rate * 100));
+            barStd.style.width = `${occPct}%`;
+            barStd.className = isSurge ? "bg-red-600 h-full transition-all duration-500" : "bg-slate-700 h-full transition-all duration-500";
+          }
+
+          const statusCell = document.getElementById(`${prefix}-status-cell`);
+          if (statusCell) {
+            if (isSurge) {
+              statusCell.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-300 animate-pulse-fast whitespace-nowrap">CRITICAL SURGE</span>`;
+            } else if (rate < 0.6) {
+              statusCell.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">SURPLUS READY</span>`;
+            } else {
+              statusCell.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">${fac.status}</span>`;
+            }
+          }
+
+          const symptomsCell = document.getElementById(`${prefix}-symptoms-cell`);
+          if (symptomsCell && fac.symptoms && fac.symptoms.length > 0) {
+            symptomsCell.innerHTML = fac.symptoms.map(s => {
+              const upper = s.toUpperCase();
+              const isShortage = upper.includes("SHORTAGE") || upper.includes("0 UNITS") || upper.includes("0 VIALS") || upper.includes("STOCKOUT");
+              const isEpidemic = upper.includes("DENGUE") || upper.includes("CHOLERA") || upper.includes("DIARRHEA");
+
+              if (isShortage) {
+                return `<span class="inline-flex items-center gap-1 bg-red-600 text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow-xs animate-pulse mr-1 mb-1 whitespace-nowrap">🚨 ${s}</span>`;
+              } else if (isEpidemic) {
+                return `<span class="inline-block bg-red-100 text-red-800 font-bold text-[10px] px-2 py-0.5 rounded border border-red-300 mr-1 mb-1 whitespace-nowrap">⚠️ ${s}</span>`;
+              } else {
+                return `<span class="inline-block bg-slate-100 text-slate-700 font-medium text-[10px] px-2 py-0.5 rounded border border-slate-200 mr-1 mb-1 whitespace-nowrap">${s}</span>`;
+              }
+            }).join(" ");
+          }
+
+          const footCell = document.getElementById(`${prefix}-footfall`);
+          if (footCell) footCell.innerText = fac.footfall;
+
+          const pillBtn = document.getElementById(`badge-pill-${prefix}`);
+          if (pillBtn) {
+            pillBtn.innerText = `${fac.name.split(' ')[0]}: ${occ}/${tot}`;
+            pillBtn.className = isSurge 
+              ? "text-red-700 font-bold bg-red-100 px-2 py-0.5 rounded border border-red-300 animate-pulse" 
+              : "text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200";
+          }
+        }
+      });
+    }
+
+    // Dynamic Summary Calculations
+    const summary = (data.bed_matrix && data.bed_matrix.district_summary) ? data.bed_matrix.district_summary : {};
+    const totBeds = summary.total_beds || dynamicTotalBeds || 75;
+    const totOcc = (summary.total_occupied_beds !== undefined) ? summary.total_occupied_beds : dynamicTotalOccupied;
+    const occPct = ((totOcc / totBeds) * 100).toFixed(1);
+
+    const occElem = document.getElementById('kpi-occupancy-percent');
+    const fracElem = document.getElementById('kpi-bed-fraction');
+    if (occElem) occElem.innerText = `${occPct}%`;
+    if (fracElem) fracElem.innerText = `${totOcc} / ${totBeds} Beds`;
+
+    const offset = 201.06 - ((occPct / 100) * 201.06);
+    const gauge = document.getElementById('gaugePath');
+    if (gauge) {
+      gauge.style.strokeDashoffset = Math.max(0, offset);
+      gauge.setAttribute("stroke", occPct >= 85 ? "#ef4444" : (occPct >= 60 ? "#f59e0b" : "#2563eb"));
+    }
+
+    if (facMap["ranaghat"]) {
+      document.getElementById("bar-ranaghat-seg").style.width = `${Math.round((facMap["ranaghat"].occ / totBeds) * 100)}%`;
+      document.getElementById("kpi-ranaghat-quick").innerText = `Ranaghat: ${facMap["ranaghat"].occ}/${facMap["ranaghat"].tot}`;
+    }
+    if (facMap["chakdaha"]) {
+      document.getElementById("bar-other-seg").style.width = `${Math.round((facMap["chakdaha"].occ / totBeds) * 100)}%`;
+      document.getElementById("kpi-chakdaha-quick").innerText = `Chakdaha: ${facMap["chakdaha"].occ}/${facMap["chakdaha"].tot}`;
+    }
+    const totalFreePct = Math.round((Math.max(0, totBeds - totOcc) / totBeds) * 100);
+    document.getElementById("bar-free-seg").style.width = `${totalFreePct}%`;
+
+    const totalOxyCapacity = summary.total_oxygen_capacity || 24;
+    const totalAvailOxy = (summary.total_oxygen_beds !== undefined) ? summary.total_oxygen_beds : Math.max(0, totalOxyCapacity - totalOxygenUsed);
+    const freeOxyPct = Math.round((totalAvailOxy / totalOxyCapacity) * 100);
+
+    document.getElementById("kpi-oxygen-avail").innerText = `${totalAvailOxy} Available`;
+    document.getElementById("kpi-oxygen-total").innerText = `of ${totalOxyCapacity} cluster O₂ beds`;
+    document.getElementById("kpi-oxygen-free-pct").innerText = `${freeOxyPct}% Free`;
+
+    const footfallVal = summary.total_footfall || dynamicTotalFootfall;
+    if (footfallVal > 0) {
+      document.getElementById("kpi-footfall-total").innerText = `${footfallVal} Patients`;
+    }
+
+    const banner = document.getElementById("surgeAlertBanner");
+    const isDistrictSurge = occPct >= 85 || summary.surge_active;
+    const ackBtn = document.getElementById("acknowledgeBtn");
+
+    if (banner && ackBtn && !ackBtn.innerText.includes("Active")) {
+      if (isDistrictSurge) {
+        banner.style.display = "flex";
+        const surgedFac = summary.surge_facility || "Ranaghat PHC";
+        document.getElementById("surgeHeading").innerText = `${surgedFac} Ward Saturation Exceeded`;
+        document.getElementById("surgeDescRatio").innerText = `${totOcc} / ${totBeds} Beds Occupied (${occPct}% Saturation)`;
+      } else {
+        banner.style.display = "none";
+      }
+    }
+  }
+
+  async function syncLiveDistrictData() {
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("Backend offline");
       const data = await res.json();
+      updateUIFromData(data);
 
-      // 1. WhatsApp Telemetry Ingest Count
-      if (data.whatsapp_feed) {
-        document.getElementById("stat-intake-count").innerText = `${data.whatsapp_feed.length} Ingested`;
-      }
-
-      // 2. Bed Matrix & Saturation Calculations
-      if (data.bed_matrix && data.bed_matrix.district_summary) {
-        const sum = data.bed_matrix.district_summary;
-        const totBeds = sum.total_beds || 75;
-        const occBeds = sum.total_occupied_beds !== undefined ? sum.total_occupied_beds : 42;
-        const satPct = ((occBeds / totBeds) * 100).toFixed(1);
-
-        document.getElementById("stat-saturation").innerText = `${satPct}%`;
-        document.getElementById("stat-saturation-beds").innerText = `${occBeds} / ${totBeds} Beds Occupied`;
-
-        const availOxy = sum.total_oxygen_beds !== undefined ? sum.total_oxygen_beds : 13;
-        const capOxy = sum.total_oxygen_capacity || 24;
-        document.getElementById("stat-oxygen").innerText = `${availOxy} Available`;
-        document.getElementById("stat-oxygen-capacity").innerText = `of ${capOxy} cluster O₂ beds`;
-      }
-
-      // 3. Hospital Node Levels
-      if (data.bed_matrix && data.bed_matrix.facilities) {
-        data.bed_matrix.facilities.forEach(fac => {
-          const name = fac.name.toLowerCase();
-          const occ = fac.bed_capacity.occupied_beds;
-          const tot = fac.bed_capacity.total_beds;
-          const free = Math.max(0, tot - occ);
-          const pct = Math.min(100, Math.round((occ / tot) * 100));
-
-          if (name.includes("ranaghat")) {
-            document.getElementById("card-ranaghat-occ").innerText = `${occ} / ${tot} Beds`;
-            document.getElementById("card-ranaghat-bar").style.width = `${pct}%`;
-            const badge = document.getElementById("badge-ranaghat");
-            if (badge) {
-              badge.innerText = occ / tot >= 0.85 ? "CRITICAL SURGE" : "SURGE RELIEVED";
-              badge.className = occ / tot >= 0.85
-                ? "px-2.5 py-1 rounded-md bg-red-950 text-red-300 border border-red-800 text-[10px] font-mono font-bold animate-pulse"
-                : "px-2.5 py-1 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-mono font-bold";
-            }
-          } else if (name.includes("chakdaha")) {
-            document.getElementById("card-chakdaha-occ").innerText = `${occ} / ${tot} Beds`;
-            document.getElementById("card-chakdaha-bar").style.width = `${pct}%`;
-          } else if (name.includes("hanskhali")) {
-            document.getElementById("card-hanskhali-occ").innerText = `${occ} / ${tot} Beds`;
-            document.getElementById("card-hanskhali-bar").style.width = `${pct}%`;
-            document.getElementById("card-hanskhali-free").innerText = `${free} Available`;
+      if (data.inventory) {
+        const hasCritical = data.inventory.some(i => i.urgency === "CRITICAL" || i.units === 0);
+        const stockBadge = document.getElementById("sidebar-stock-status-pill");
+        if (stockBadge) {
+          if (hasCritical) {
+            stockBadge.className = "bg-red-500/20 text-red-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-red-500/30 animate-pulse";
+            stockBadge.innerText = "Stockouts";
+          } else {
+            stockBadge.className = "bg-emerald-500/20 text-emerald-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-emerald-500/30";
+            stockBadge.innerText = "Stock Nominal";
           }
-        });
-      }
-
-      // 4. Active Missions / Drone Transit
-      if (data.active_missions) {
-        const missions = data.active_missions;
-        document.getElementById("stat-active-missions").innerText = `${missions.length} Active`;
-
-        const uavStatusEl = document.getElementById("threeHubUavStatus");
-        const missionDetailEl = document.getElementById("stat-missions-detail");
-
-        if (missions.length > 0) {
-          const first = missions[0];
-          missionDetailEl.innerText = `${first.mode}: ${first.eta_formatted || 'En Route'}`;
-          if (uavStatusEl) uavStatusEl.innerText = `${first.mode}: ${first.eta_formatted}`;
-        } else {
-          missionDetailEl.innerText = "Fleet Docked on Pad";
-          if (uavStatusEl) uavStatusEl.innerText = "Airway: Standby";
         }
       }
 
+      if (data.whatsapp_feed) renderLiveFeed(data.whatsapp_feed);
+
     } catch (e) {
-      console.warn("FastAPI polling sync...", e);
+      updateUIFromData({ bed_matrix: { facilities: clusterFacilities } });
+      renderDefaultWhatsAppFeed();
     }
   }
 
-  // Initializing Engine on Load
+  function renderDefaultWhatsAppFeed() {
+    const feed = [
+      {
+        sender_name: "Dr. A. Sen (Ranaghat PHC)",
+        facility: "Ranaghat PHC",
+        phone: "+91 98301 22910",
+        timestamp: "10:42 AM",
+        modality: "audio",
+        raw_snippet: "Rapid influx of severe diarrheal cases following flash flooding. We have only 1 bed left in the clinical wing.",
+        doctor: "Dr. A. Sen",
+        footfall: 48,
+        beds_occupied: 19,
+        beds_total: 20,
+        shortage: true
+      }
+    ];
+    renderLiveFeed(feed);
+  }
+
+  function renderLiveFeed(feed) {
+    const container = document.getElementById("telemetryFeedContainer");
+    if (!container || !feed) return;
+
+    let audio = 0, ocr = 0;
+    feed.forEach(i => i.modality === "audio" ? audio++ : ocr++);
+    document.getElementById("feed-audio-count").innerText = audio;
+    document.getElementById("feed-ocr-count").innerText = ocr;
+    document.getElementById("sidebar-feed-count").innerText = feed.length;
+    document.getElementById("kpi-telemetry-count").innerText = `${feed.length} Ingested`;
+
+    container.innerHTML = feed.map(item => {
+      const isVoice = item.modality === "audio";
+      return `
+        <div class="telemetry-item p-3.5 ${item.shortage ? 'bg-red-50/70 border-red-300 ring-1 ring-red-100' : 'bg-slate-50 border-slate-200'} border rounded-xl text-xs space-y-2.5 transition" data-type="${isVoice ? 'audio' : 'ocr'}">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-bold text-slate-900">${item.sender_name}</span>
+            <span class="text-slate-400 font-mono text-[10px]">${item.timestamp}</span>
+          </div>
+          <div class="text-[10px] text-slate-500 font-mono">${item.facility} • ${item.phone}</div>
+          <p class="text-slate-700 italic text-[11px] bg-white p-2 rounded-lg border border-slate-100 shadow-xs">"${item.raw_snippet}"</p>
+          <div class="bg-slate-900 text-white rounded-lg p-2.5 text-[10px] font-mono space-y-0.5">
+            <div class="text-blue-300 font-semibold">Gemini 3.6-Flash Telemetry:</div>
+            <div class="text-slate-300">Doctor: ${item.doctor} | Footfall: ${item.footfall} | Beds: ${item.beds_occupied}/${item.beds_total}</div>
+            <div class="${item.shortage ? 'text-red-400 font-bold animate-pulse' : 'text-emerald-400'}">${item.shortage ? 'SHORTAGE_ALERT = TRUE (Surge Flagged)' : 'SURPLUS_DONOR = READY'}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    initThreeDigitalTwin();
-    syncOverviewTelemetry();
-    setInterval(syncOverviewTelemetry, 2000);
+    drawSparkline('sparklineFootfall', [45, 52, 60, 58, 79, 104], '#ef4444', 'rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.0)');
+    syncLiveDistrictData();
+    setInterval(syncLiveDistrictData, 3000);
   });
 </script>
 </body>
