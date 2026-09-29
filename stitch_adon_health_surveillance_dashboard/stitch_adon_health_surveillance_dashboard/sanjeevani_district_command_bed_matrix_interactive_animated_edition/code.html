@@ -57,7 +57,7 @@
   <!-- Brand Header -->
   <div class="px-5 py-5 border-b border-slate-800 flex items-center space-x-3.5" style="border-color: rgb(46, 8, 13);">
     <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
-      <img src="/hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+      <img src="/hacathon%20logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.onerror=null; this.src='./hacathon logo.jpeg'; if(!this.complete) this.src='/sanjeevani_district_command_bed_matrix_interactive_animated_edition/hacathon%20logo.jpeg';">
     </div>
     <div>
       <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <!-- Synchronized Navigation Items (Root-Absolute Paths) -->
+  <!-- Synchronized Navigation Items -->
   <nav class="px-3 py-4 space-y-1">
     <p class="px-3 pb-2 text-[10px] font-semibold tracking-wider uppercase text-slate-400">Clinical Surveillance</p>
     
@@ -556,7 +556,7 @@
 
   function handleGlobalLogout() {
     sessionStorage.clear();
-    window.location.href = "/sanjeevani_dedicated_clinician_staff_access_portal/code.html";
+    window.location.href = "/sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
   }
 
   function handleTableSearch(term) {
@@ -937,9 +937,22 @@
     }
   }
 
+  // Non-blocking Sequential Poller with AbortController
+  let isSyncing = false;
+
   async function syncLiveDistrictData() {
+    if (isSyncing) return;
+    isSyncing = true;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
     try {
-      const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
+      const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
       if (!res.ok) throw new Error("Backend offline");
       const data = await res.json();
       updateUIFromData(data);
@@ -961,8 +974,13 @@
       if (data.whatsapp_feed) renderLiveFeed(data.whatsapp_feed);
 
     } catch (e) {
+      clearTimeout(timeoutId);
+      // Backend asleep or slow: render stable local data immediately, kill browser spinner
       updateUIFromData({ bed_matrix: { facilities: clusterFacilities } });
       renderDefaultWhatsAppFeed();
+    } finally {
+      isSyncing = false;
+      setTimeout(syncLiveDistrictData, 6000);
     }
   }
 
@@ -1018,8 +1036,11 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     drawSparkline('sparklineFootfall', [45, 52, 60, 58, 79, 104], '#ef4444', 'rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.0)');
+    // Initial immediate paint
+    updateUIFromData({ bed_matrix: { facilities: clusterFacilities } });
+    renderDefaultWhatsAppFeed();
+    // Begin gentle background sync
     syncLiveDistrictData();
-    setInterval(syncLiveDistrictData, 3000);
   });
 </script>
 </body>
