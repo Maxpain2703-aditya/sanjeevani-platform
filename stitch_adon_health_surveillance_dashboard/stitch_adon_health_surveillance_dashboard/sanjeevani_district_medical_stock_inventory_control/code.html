@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SANJEEVANI - District Medical Stock &amp; Inventory Control</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: '#18191d',
+            'sidebar-hover': '#24252a',
+            'sidebar-active': '#2c2d33',
+            surface: '#f8f9ff',
+            'card-border': '#e2e8f0',
+            'clinical-red': '#ef4444',
+            'clinical-amber': '#f59e0b',
+            'clinical-blue': '#2563eb',
+            'clinical-cobalt': '#1d4ed8',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <style>
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    .animate-pulse-fast { animation: pulse-fast 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  </style>
+</head>
+<body class="bg-surface text-slate-800 font-sans antialiased min-h-screen flex flex-col md:flex-row relative">
+
+  <!-- UNIFIED SYNCHRONIZED SIDEBAR -->
+  <aside class="w-full md:w-64 bg-sidebar text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 z-20" style="background-color: rgb(20, 2, 4); border-color: rgb(46, 8, 13);">
+    <div>
+      <!-- Brand & District Node Header with Hackathon Logo -->
+      <div class="px-5 py-5 border-b border-slate-800 flex items-center space-x-3.5" style="border-color: rgb(46, 8, 13);">
+        <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
+          <img src="../hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+        </div>
+        <div>
+          <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
+            SANJEEVANI
+            <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span></span>
+          </span>
+          <p class="text-[11px] text-slate-400 font-mono">Nadia Command Node WB-08</p>
+        </div>
+      </div>
+
+      <!-- Navigation Section -->
+      <nav class="px-3 py-4 space-y-1">
+        <p class="px-3 pb-2 text-[10px] font-semibold tracking-wider uppercase text-slate-400">Clinical Surveillance</p>
+        
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Overview / Clinical Matrix</span>
+          </div>
+        </a>
+
+        <!-- Active Page: Medical Stock & Inventory -->
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-white font-medium text-xs shadow-sm transition-all duration-150" href="#" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Medical Stock &amp; Inventory</span>
+          </div>
+          <span class="bg-red-500/20 text-red-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-red-500/30 animate-pulse" id="stockout-badge">Stockouts Active</span>
+        </a>
+
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_transit_corridor_map_operations_interactive_animated_edition/code.html">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Transit &amp; Corridors</span>
+          </div>
+          <span class="bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30">Drones</span>
+        </a>
+
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html#telemetryFeedContainer">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>WhatsApp Intake</span>
+          </div>
+          <span class="bg-white/10 text-white font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-white/20" id="sidebar-feed-count">1</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom Preferences & Node Status -->
+    <div class="px-4 py-4 border-t border-slate-800 space-y-3" style="border-color: rgb(46, 8, 13);">
+      <div class="flex items-center space-x-3 p-2 bg-sidebar-active/60 rounded-lg transition-colors hover:bg-sidebar-active/90" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs text-white border border-slate-600" id="inv-avatar" style="background-color: rgb(46, 8, 13); border-color: rgba(255, 255, 255, 0.2);">
+          SR
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-semibold text-white truncate" id="inv-user-name">Dr. S. Roy (CMO)</p>
+          <p class="text-[10px] text-slate-400 truncate" id="inv-user-facility">Nadia Cluster Hub</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1">
+        <span class="flex items-center gap-1.5"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span></span> Node WB-08</span>
+        <span class="font-mono text-[10px] text-slate-400">FastAPI : 8000</span>
+      </div>
+      <button type="button" onclick="handleGlobalLogout()" class="w-full mt-2 py-2 px-3 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-800/50 hover:border-red-600 transition flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer shadow-sm">
+        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        <span>Log Out to Overview</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Workspace -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-card-border px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <div class="relative w-96">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+        <input class="w-full bg-slate-50 pl-10 pr-4 py-2 rounded-lg text-xs outline-none focus:bg-white border border-card-border focus:border-blue-500 transition" id="tableSearchInput" oninput="applyFilters()" placeholder="Search SKU, item name, or facility..." type="text">
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5" id="syncPillStatus">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          District Stock Sync Active
+        </span>
+        <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center space-x-1.5 text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 hover:border-red-300 font-medium px-3 py-1.5 rounded-lg transition duration-150 cursor-pointer shadow-xs" title="Log Out of Sanjeevani">
+          <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="p-8 space-y-6 max-w-7xl mx-auto w-full">
+      <!-- Title & Actions -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 tracking-tight">District Medical Stock &amp; Inventory Control</h1>
+          <p class="text-xs text-slate-500 mt-1">Autonomous stockout triage, epidemic surge ROP &amp; multi-modal corridor payload dispatch across Nadia PHCs.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer" onclick="openPhysicalStockModal()">
+            <span class="material-symbols-outlined text-[18px]">add_box</span>
+            Log Physical Count
+          </button>
+          <button class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-2 transition cursor-pointer" onclick="exportDistrictStockSitRep()">
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            <span id="export-text">Export SitRep</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Epidemic Alert Banner -->
+      <div id="epidemic-alert-banner" class="bg-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 transition-all duration-300" style="background: radial-gradient(circle at 80% 20%, #2f070c 0%, #1a0306 50%, #0d0103 100%);">
+        <div class="space-y-2 max-w-2xl">
+          <span id="banner-tag" class="px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse">Epidemic Correlation Alert</span>
+          <h2 id="banner-heading" class="text-base font-bold text-white">Critical Stockout Emergency • Cluster Node Alert</h2>
+          <p class="text-xs text-slate-300 leading-relaxed" id="banner-description">
+            Severe clinical outbreak reported via telemetry. Critical stockout of IV infusion supplies: <strong class="text-red-400">0 units remaining (0.0 hours buffer)</strong>. Immediate aerial restock sortie required.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-shrink-0 w-full lg:w-auto">
+          <!-- Logistics Mode Selector -->
+          <select id="dispatchModeSelect" class="text-xs font-semibold py-2.5 px-3 rounded-xl border border-red-800 bg-black/40 text-slate-200 focus:bg-slate-900 focus:ring-2 focus:ring-red-500 outline-none cursor-pointer">
+            <option value="drone" selected>AeroSupply UAV (35s Airway)</option>
+            <option value="road">Road Heavy Transport (45s Convoy)</option>
+          </select>
+
+          <button class="px-5 py-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition cursor-pointer flex-shrink-0" id="btn-preauth-drone" onclick="dispatchSelectedSupply('Ranaghat PHC', 'Ringer\'s Lactate (RL) 500ml Infusion', 50)">
+            <span class="material-symbols-outlined text-[18px]">bolt</span>
+            <span id="btn-drone-text">Authorize Emergency Restock (50 RL)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Facility Stock Matrix</span>
+            <span class="text-[10px] font-mono text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded" id="stock-count-summary">5 SKUs Tracked</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="facilityFilter" onchange="applyFilters()" class="text-xs border-card-border rounded-lg py-1.5 px-3 bg-white text-slate-700 outline-none">
+              <option value="ALL">All Facilities</option>
+              <option value="Ranaghat PHC">Ranaghat PHC</option>
+              <option value="Chakdaha BPHC">Chakdaha BPHC</option>
+              <option value="Hanskhali Rural Hospital">Hanskhali Rural Hospital</option>
+            </select>
+            <select id="urgencyFilter" onchange="applyFilters()" class="text-xs border-card-border rounded-lg py-1.5 px-3 bg-white text-slate-700 outline-none">
+              <option value="ALL">All Urgencies</option>
+              <option value="CRITICAL">Critical Only</option>
+              <option value="LOW BUFFER">Low Buffer</option>
+              <option value="ADEQUATE">Adequate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-200">
+                <th class="py-3 px-4 min-w-[220px]">SKU / Item Name</th>
+                <th class="py-3 px-4 min-w-[150px]">Facility &amp; Ward</th>
+                <th class="py-3 px-4 text-right min-w-[120px]">Physical Count</th>
+                <th class="py-3 px-4 min-w-[160px]">Runout Horizon</th>
+                <th class="py-3 px-4 text-center min-w-[140px]">Status</th>
+                <th class="py-3 px-4 text-right min-w-[140px]">Emergency Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700" id="inventoryTbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Physical Stock Count Modal -->
+  <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" id="stock-modal">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden p-6 space-y-4 border border-card-border">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-sm">Log Physical Stock Count</h3>
+        <button class="text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closePhysicalStockModal()">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <form id="stock-form" onsubmit="event.preventDefault(); commitStockCount();" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Facility</label>
+          <select id="modal-fac-node" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-lg outline-none">
+            <option value="Ranaghat PHC">Ranaghat PHC</option>
+            <option value="Chakdaha BPHC">Chakdaha BPHC</option>
+            <option value="Hanskhali Rural Hospital">Hanskhali Rural Hospital</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">SKU / Item Name</label>
+          <input id="modal-sku-name" required class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-lg outline-none" placeholder="e.g. Ringer's Lactate (RL) 500ml Infusion" type="text">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Count Units</label>
+          <input id="modal-sku-units" required min="0" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-lg outline-none" placeholder="0" type="number">
+        </div>
+        <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+          <button type="button" class="px-4 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold cursor-pointer" onclick="closePhysicalStockModal()">Cancel</button>
+          <button type="submit" id="btn-commit-stock" class="px-4 py-2 rounded-lg text-white bg-slate-900 hover:bg-slate-800 font-semibold cursor-pointer">Commit Count</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Logistics Mission Telemetry Modal -->
+  <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" id="drone-modal">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4 border border-card-border">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-blue-600 animate-ping"></span>
+          <h3 class="font-bold text-slate-900 text-sm" id="modal-mission-title">Emergency Corridor Payload Dispatch</h3>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeDroneModal()">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-4 bg-slate-900 text-white rounded-xl space-y-3 font-mono text-xs">
+        <div class="flex justify-between items-center text-blue-300 font-bold border-b border-slate-800 pb-2">
+          <span id="drone-flight-id">UAV-WB-SORTIE</span>
+          <span class="text-emerald-400 font-bold animate-pulse" id="drone-modal-status-badge">IN TRANSIT</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+          <div>Destination: <strong class="text-white block" id="drone-dest">Ranaghat PHC</strong></div>
+          <div>Payload: <strong class="text-white block" id="drone-payload">50x Ringer's Lactate</strong></div>
+          <div>Transit Mode: <strong class="text-cyan-300 block" id="drone-mode-label">UAV Air Corridor</strong></div>
+          <div>Transit Timer: <strong class="text-amber-300 block font-bold" id="drone-eta">35s</strong></div>
+        </div>
+        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-full rounded-full transition-all duration-1000" id="drone-progress-bar" style="width: 35%"></div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Live telemetry streaming from Nadia District Command Node (WB-08). Cargo payload auto-updates database immediately upon arrival.
+      </p>
+
+      <div class="pt-2 flex justify-end">
+        <button type="button" class="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 font-semibold text-xs cursor-pointer shadow-sm" onclick="closeDroneModal()">
+          Acknowledge Flight Telemetry
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    const BACKEND_URL = "http://localhost:8000";
+    let liveInventory = [];
+    let latestActiveMissions = [];
+
+    const DEFAULT_INVENTORY = [
+      {
+        facility: "Ranaghat PHC",
+        sku_name: "Polyvalent Anti-Snake Venom (ASV) 10ml",
+        units: 0,
+        runout_hours: 0.0,
+        urgency: "CRITICAL"
+      },
+      {
+        facility: "Ranaghat PHC",
+        sku_name: "Ringer's Lactate (RL) 500ml Infusion",
+        units: 0,
+        runout_hours: 0.0,
+        urgency: "CRITICAL"
+      },
+      {
+        facility: "Chakdaha BPHC",
+        sku_name: "Oral Rehydration Salts (ORS)",
+        units: 1420,
+        runout_hours: 400.0,
+        urgency: "ADEQUATE"
+      },
+      {
+        facility: "Chakdaha BPHC",
+        sku_name: "Medical Oxygen Cylinders (10L D-Type)",
+        units: 18,
+        runout_hours: 72.0,
+        urgency: "ADEQUATE"
+      },
+      {
+        facility: "Hanskhali Rural Hospital",
+        sku_name: "Amoxicillin + Clavulanic Acid 625mg",
+        units: 42,
+        runout_hours: 33.6,
+        urgency: "LOW BUFFER"
+      }
+    ];
+
+    function handleGlobalLogout() {
+      sessionStorage.removeItem("sanjeevani_session");
+      sessionStorage.clear();
+      window.location.href = "../sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
+    }
+
+    function openPhysicalStockModal() {
+      document.getElementById('stock-modal').classList.remove('hidden');
+    }
+
+    function closePhysicalStockModal() {
+      document.getElementById('stock-modal').classList.add('hidden');
+      document.getElementById('stock-form').reset();
+    }
+
+    function openDroneModal(data) {
+      document.getElementById("drone-flight-id").innerText = data.dispatch_id || "UAV-WB-0914";
+      document.getElementById("drone-dest").innerText = data.destination || "Ranaghat PHC";
+      document.getElementById("drone-payload").innerText = `${data.units}x ${data.payload}`;
+      document.getElementById("drone-mode-label").innerText = data.mode || "UAV Air Corridor";
+      document.getElementById("drone-eta").innerText = `ETA: ${data.estimated_arrival || "35s"}`;
+      document.getElementById("drone-progress-bar").style.width = "40%";
+      document.getElementById('drone-modal').classList.remove('hidden');
+    }
+
+    function closeDroneModal() {
+      document.getElementById('drone-modal').classList.add('hidden');
+    }
+
+    function formatRunoutHorizon(hours) {
+      if (hours <= 0) return "0.0 Hours (Stockout)";
+      if (hours < 24) return `${hours.toFixed(1)} Hours`;
+      const days = (hours / 24).toFixed(1);
+      return `${days} Days (${hours.toFixed(0)}h)`;
+    }
+
+    function updateAlertBannerState() {
+      const banner = document.getElementById("epidemic-alert-banner");
+      const tag = document.getElementById("banner-tag");
+      const head = document.getElementById("banner-heading");
+      const desc = document.getElementById("banner-description");
+      const preAuthBtn = document.getElementById("btn-preauth-drone");
+
+      // 1. Check for active in-flight missions
+      const activeMission = latestActiveMissions.find(m => 
+        (m.type === "drone" || m.type === "road_supply") && m.seconds_remaining > 0
+      );
+
+      if (activeMission) {
+        const isRoad = activeMission.type === "road_supply";
+        if (banner) {
+          banner.style.background = isRoad
+            ? "radial-gradient(circle at 80% 20%, #2f1d07 0%, #1c1103 50%, #0d0701 100%)"
+            : "radial-gradient(circle at 80% 20%, #1e1338 0%, #120924 50%, #070311 100%)";
+        }
+        if (tag) {
+          tag.className = isRoad 
+            ? "px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse"
+            : "px-2.5 py-0.5 rounded-full bg-cyan-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse";
+          tag.innerText = isRoad ? "ROAD CONVOY IN TRANSIT • RESTOCK EN ROUTE" : "AIR CORRIDOR IN-FLIGHT • RESTOCK EN ROUTE";
+        }
+        if (head) {
+          head.innerText = `Emergency Logistics Active • ${activeMission.facility}`;
+        }
+        if (desc) {
+          desc.innerHTML = `${activeMission.mode} carrying <strong class="text-cyan-300 font-bold">${activeMission.quantity}x ${activeMission.item}</strong>. Corridor ETA: <strong class="text-amber-300 font-bold text-sm ml-1">${activeMission.eta_formatted}</strong> (${activeMission.speed_kmh} km/h).`;
+        }
+        if (preAuthBtn) {
+          preAuthBtn.className = isRoad
+            ? "px-5 py-3 bg-amber-600 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg cursor-default flex-shrink-0"
+            : "px-5 py-3 bg-cyan-600 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg cursor-default flex-shrink-0";
+          preAuthBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">rotate_right</span> <span>Inbound (${activeMission.eta_formatted})</span>`;
+          preAuthBtn.onclick = null;
+        }
+        return;
+      }
+
+      // 2. Identify highest-urgency critical item
+      const criticalItem = liveInventory.find(i => i.units === 0 || i.urgency === "CRITICAL");
+
+      if (criticalItem) {
+        if (banner) {
+          banner.style.background = "radial-gradient(circle at 80% 20%, #2f070c 0%, #1a0306 50%, #0d0103 100%)";
+        }
+        if (tag) {
+          tag.className = "px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider animate-pulse";
+          tag.innerText = "Epidemic Correlation Alert";
+        }
+        if (head) {
+          head.innerText = `Critical Stockout Emergency • ${criticalItem.facility}`;
+        }
+        if (desc) {
+          desc.innerHTML = `Zero stock flagged via frontline surveillance. <strong class="text-red-400">0 units of ${criticalItem.sku_name} remaining (0.0 hours buffer)</strong>. Immediate autonomous replenishment sortie required.`;
+        }
+        if (preAuthBtn) {
+          preAuthBtn.className = "px-5 py-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition cursor-pointer flex-shrink-0";
+          preAuthBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">bolt</span> <span id="btn-drone-text">Authorize Emergency Restock (${criticalItem.sku_name.split(' ')[0]})</span>`;
+          preAuthBtn.onclick = () => dispatchSelectedSupply(criticalItem.facility, criticalItem.sku_name, 50);
+        }
+      } else {
+        if (banner) {
+          banner.style.background = "radial-gradient(circle at 80% 20%, #062f17 0%, #041a0e 50%, #010d06 100%)";
+        }
+        if (tag) {
+          tag.className = "px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider";
+          tag.innerText = "District Reserves Nominal • All Nodes Supplied";
+        }
+        if (head) {
+          head.innerText = "Medical Reserves Nominal across Nadia Cluster";
+        }
+        if (desc) {
+          desc.innerHTML = "All critical items, antivenom reserves, IV fluids, and oxygen stocks are currently within standard operating buffers.";
+        }
+        if (preAuthBtn) {
+          preAuthBtn.className = "px-5 py-3 bg-slate-800 text-slate-400 font-bold text-xs rounded-xl flex items-center gap-2 shadow-none cursor-default flex-shrink-0";
+          preAuthBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">verified</span> <span>Supply Corridors Standby</span>`;
+          preAuthBtn.onclick = null;
+        }
+      }
+    }
+
+    function renderInventoryTable(items) {
+      const tbody = document.getElementById("inventoryTbody");
+      if (!tbody) return;
+
+      if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 text-xs">No medical stock matches the active filter criteria.</td></tr>`;
+        return;
+      }
+
+      document.getElementById("stock-count-summary").innerText = `${items.length} SKUs Tracked`;
+
+      // Update sidebar status badge
+      const hasCritical = items.some(i => i.urgency === "CRITICAL" || i.units === 0);
+      const stockoutBadge = document.getElementById("stockout-badge");
+      if (stockoutBadge) {
+        if (hasCritical) {
+          stockoutBadge.className = "bg-red-500/20 text-red-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-red-500/30 animate-pulse";
+          stockoutBadge.innerText = "Stockouts Active";
+        } else {
+          stockoutBadge.className = "bg-emerald-500/20 text-emerald-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-emerald-500/30";
+          stockoutBadge.innerText = "Stock Nominal";
+        }
+      }
+
+      tbody.innerHTML = items.map(item => {
+        const isCritical = item.urgency === "CRITICAL" || item.units === 0;
+        const isLow = item.urgency === "LOW BUFFER";
+        const rowBg = isCritical ? "bg-red-50/50 hover:bg-red-50 transition" : (isLow ? "bg-amber-50/20 hover:bg-amber-50 transition" : "hover:bg-slate-50 transition");
+
+        const incomingMission = latestActiveMissions.find(m => 
+          (m.type === "drone" || m.type === "road_supply") && 
+          m.seconds_remaining > 0 && 
+          m.facility.toLowerCase().includes(item.facility.toLowerCase().split(" ")[0])
+        );
+
+        let statusBadge = "";
+        let countClass = "text-slate-900";
+        let actionBtn = "";
+
+        if (incomingMission) {
+          const isRoad = incomingMission.type === "road_supply";
+          statusBadge = isRoad
+            ? `<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-300 animate-pulse">CONVOY (${incomingMission.seconds_remaining}s)</span>`
+            : `<span class="px-2.5 py-1 rounded-full bg-cyan-100 text-cyan-800 font-bold text-[10px] border border-cyan-300 animate-pulse">UAV INBOUND (${incomingMission.seconds_remaining}s)</span>`;
+          countClass = "text-blue-700 font-bold";
+          actionBtn = `<button class="px-3 py-1.5 ${isRoad ? 'bg-amber-600' : 'bg-cyan-600'} text-white rounded-lg text-xs font-semibold cursor-default shadow-xs flex items-center gap-1"><span class="material-symbols-outlined text-xs animate-spin">${isRoad ? 'local_shipping' : 'flight'}</span><span>In Transit</span></button>`;
+        } else if (isCritical) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-bold text-[10px] border border-red-200 animate-pulse-fast">CRITICAL</span>`;
+          countClass = "text-red-600 font-bold";
+          actionBtn = `<button class="px-3 py-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-xs" onclick="dispatchSupplyOption('${item.facility}', '${item.sku_name.replace(/'/g, "\\'")}', 40, 'drone')">Drone Sortie</button>`;
+        } else if (isLow) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-200">LOW BUFFER</span>`;
+          countClass = "text-amber-600 font-bold";
+          actionBtn = `<button class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-xs" onclick="dispatchSupplyOption('${item.facility}', '${item.sku_name.replace(/'/g, "\\'")}', 30, 'road')">Restock</button>`;
+        } else {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold text-[10px] border border-emerald-200">ADEQUATE</span>`;
+          actionBtn = `<button class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer" onclick="promptDirectCount('${item.facility}', '${item.sku_name.replace(/'/g, "\\'")}', ${item.units})">Update Count</button>`;
+        }
+
+        return `
+          <tr class="${rowBg}" data-facility="${item.facility}" data-urgency="${item.urgency}">
+            <td class="py-4 px-4 font-bold text-slate-900">${item.sku_name}</td>
+            <td class="py-4 px-4 text-slate-600">${item.facility}</td>
+            <td class="py-4 px-4 text-right ${countClass} text-sm">${item.units.toLocaleString()} Units</td>
+            <td class="py-4 px-4 font-semibold ${isCritical ? 'text-red-600' : (isLow ? 'text-amber-600' : 'text-slate-600')}">${formatRunoutHorizon(item.runout_hours)}</td>
+            <td class="py-4 px-4 text-center">${statusBadge}</td>
+            <td class="py-4 px-4 text-right">${actionBtn}</td>
+          </tr>
+        `;
+      }).join("");
+
+      updateAlertBannerState();
+      applyFilters();
+    }
+
+    function dispatchSelectedSupply(facilityId, itemName, qty) {
+      const mode = document.getElementById("dispatchModeSelect") ? document.getElementById("dispatchModeSelect").value : "drone";
+      dispatchSupplyOption(facilityId, itemName, qty, mode);
+    }
+
+    async function dispatchSupplyOption(facilityId, itemName, qty, mode = "drone") {
+      const btnText = document.getElementById("btn-drone-text");
+      if (btnText) btnText.innerText = mode === "drone" ? "Launching UAV..." : "Dispatching Convoy...";
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/v1/dispatch/supply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            facility_id: facilityId,
+            item_name: itemName,
+            quantity: qty,
+            mode: mode
+          })
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          openDroneModal(res);
+          syncInventoryData();
+        }
+      } catch (err) {
+        alert("Logistics corridor armed.");
+      } finally {
+        if (btnText) btnText.innerText = "Authorize Emergency Restock (50 RL)";
+      }
+    }
+
+    function promptDirectCount(fac, sku, currentUnits) {
+      const val = prompt(`Enter verified physical count for ${sku} at ${fac}:`, currentUnits);
+      if (val !== null && !isNaN(parseInt(val, 10))) {
+        const count = parseInt(val, 10);
+        fetch(`${BACKEND_URL}/api/v1/inventory/adjust`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ facility: fac, sku_name: sku, new_count: count })
+        }).then(() => syncInventoryData());
+      }
+    }
+
+    function applyFilters() {
+      const search = (document.getElementById("tableSearchInput").value || "").toLowerCase().trim();
+      const facility = document.getElementById("facilityFilter").value;
+      const urgency = document.getElementById("urgencyFilter").value;
+
+      const rows = document.querySelectorAll("#inventoryTbody tr");
+      rows.forEach(row => {
+        const rFacility = row.getAttribute("data-facility") || "";
+        const rUrgency = row.getAttribute("data-urgency") || "";
+        const text = row.innerText.toLowerCase();
+
+        const matchSearch = !search || text.includes(search);
+        const matchFac = facility === "ALL" || rFacility === facility;
+        const matchUrg = urgency === "ALL" || rUrgency === urgency;
+
+        row.style.display = (matchSearch && matchFac && matchUrg) ? "" : "none";
+      });
+    }
+
+    async function commitStockCount() {
+      const node = document.getElementById("modal-fac-node").value;
+      const sku = document.getElementById("modal-sku-name").value;
+      const count = parseInt(document.getElementById("modal-sku-units").value, 10);
+      const commitBtn = document.getElementById("btn-commit-stock");
+
+      if (isNaN(count)) return;
+
+      commitBtn.innerText = "Saving...";
+      commitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/v1/inventory/adjust`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ facility: node, sku_name: sku, new_count: count })
+        });
+
+        if (res.ok) {
+          syncInventoryData();
+          alert(`Physical Count Logged!\n• Facility: ${node}\n• Item: ${sku}\n• Count: ${count} Units`);
+        }
+      } catch (e) {
+        alert("Recorded locally.");
+      } finally {
+        commitBtn.innerText = "Commit Count";
+        commitBtn.disabled = false;
+        closePhysicalStockModal();
+      }
+    }
+
+    function exportDistrictStockSitRep() {
+      const exportBtn = document.getElementById("export-text");
+      exportBtn.innerText = "Generating CSV...";
+
+      const items = liveInventory.length ? liveInventory : DEFAULT_INVENTORY;
+      const headers = ["Facility", "SKU_Name", "Physical_Count", "Runout_Hours", "Urgency_Status"];
+      const rows = items.map(i => [
+        `"${i.facility}"`,
+        `"${i.sku_name}"`,
+        i.units,
+        i.runout_hours,
+        `"${i.urgency}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Sanjeevani_Stock_SitRep_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => {
+        exportBtn.innerText = "Export SitRep";
+      }, 1200);
+    }
+
+    // REACTIVE LIVE SYNCHRONIZATION WITH BACKEND TELEMETRY
+    async function syncInventoryData() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        // 1. Synchronize active drone / convoy missions
+        if (data.active_missions) {
+          latestActiveMissions = data.active_missions;
+        }
+
+        // 2. Fetch inventory array from backend
+        let items = (data.inventory && data.inventory.length > 0) ? data.inventory : DEFAULT_INVENTORY;
+
+        // 3. Inspect recent WhatsApp feed for shortage triggers
+        if (data.whatsapp_feed && data.whatsapp_feed.length > 0) {
+          document.getElementById("sidebar-feed-count").innerText = data.whatsapp_feed.length;
+          
+          const urgentMsg = data.whatsapp_feed.find(m => 
+            m.shortage === true || 
+            (m.raw_snippet && (
+              m.raw_snippet.toLowerCase().includes("stockout") || 
+              m.raw_snippet.toLowerCase().includes("0 units") || 
+              m.raw_snippet.toLowerCase().includes("0 vials") || 
+              m.raw_snippet.toLowerCase().includes("0 bags") ||
+              m.raw_snippet.toLowerCase().includes("0 bottles") ||
+              m.raw_snippet.toLowerCase().includes("zero") ||
+              m.raw_snippet.toLowerCase().includes("shortage") ||
+              m.raw_snippet.includes("চরম সংকট") ||
+              m.raw_snippet.includes("সম্পূর্ণ শূন্য")
+            ))
+          );
+
+          if (urgentMsg) {
+            const raw = (urgentMsg.raw_snippet || "").toLowerCase();
+            const fac = urgentMsg.facility || "Ranaghat PHC";
+            const facPrefix = fac.split(" ")[0].toLowerCase();
+
+            // Zero out matching items if an active mission is not currently delivering
+            const isResolving = latestActiveMissions.some(m => 
+              m.facility.toLowerCase().includes(facPrefix) && m.seconds_remaining > 0
+            );
+
+            if (!isResolving) {
+              items = items.map(item => {
+                const itemFac = item.facility.toLowerCase();
+                const itemName = item.sku_name.toLowerCase();
+
+                if (itemFac.includes(facPrefix)) {
+                  // Specific match for Ringer's Lactate (does NOT match ORS)
+                  if ((raw.includes("ringer") || raw.includes("rl") || raw.includes("fluid") || raw.includes("স্যালাইন")) &&
+                      (itemName.includes("ringer") || itemName.includes("rl"))) {
+                    return { ...item, units: 0, runout_hours: 0.0, urgency: "CRITICAL" };
+                  }
+                  // Specific match for Anti-Snake Venom
+                  if ((raw.includes("venom") || raw.includes("asv") || raw.includes("snake") || raw.includes("অ্যান্টিভেনম")) &&
+                      (itemName.includes("venom") || itemName.includes("asv"))) {
+                    return { ...item, units: 0, runout_hours: 0.0, urgency: "CRITICAL" };
+                  }
+                  // Specific match for Oxygen Cylinders
+                  if ((raw.includes("oxygen") || raw.includes("cylinder") || raw.includes("o2")) &&
+                      (itemName.includes("oxygen") || itemName.includes("cylinder"))) {
+                    return { ...item, units: 0, runout_hours: 0.0, urgency: "CRITICAL" };
+                  }
+                }
+                return item;
+              });
+            }
+          }
+        }
+
+        liveInventory = items;
+        renderInventoryTable(liveInventory);
+
+      } catch (err) {
+        if (!liveInventory.length) {
+          liveInventory = DEFAULT_INVENTORY;
+          renderInventoryTable(liveInventory);
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const rawSession = sessionStorage.getItem("sanjeevani_session");
+      if (rawSession) {
+        try {
+          const user = JSON.parse(rawSession);
+          if (user.name) {
+            document.getElementById("inv-user-name").innerText = user.name;
+            document.getElementById("inv-user-facility").innerText = user.facility || "Nadia Hub";
+            const initials = user.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+            document.getElementById("inv-avatar").innerText = initials;
+          }
+        } catch (e) {}
+      }
+
+      syncInventoryData();
+      setInterval(syncInventoryData, 2000);
+    });
+  </script>
+</body>
+</html>

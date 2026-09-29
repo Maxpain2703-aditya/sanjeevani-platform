@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SANJEEVANI - Transit Corridor &amp; Aerial Drone Operations Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sidebar: '#18191d',
+            'sidebar-hover': '#24252a',
+            'sidebar-active': '#2c2d33',
+            surface: '#f8f9ff',
+            'card-border': '#e2e8f0',
+            'clinical-red': '#ef4444',
+            'clinical-amber': '#f59e0b',
+            'clinical-blue': '#2563eb',
+            'clinical-cobalt': '#1d4ed8',
+            mapLightBg: '#f8fafc',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Leaflet CSS & JS for Interactive Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    .leaflet-container {
+      background: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
+    .leaflet-tile-pane {
+      filter: saturate(0.85) contrast(1.05);
+    }
+    /* Completely hide tile attribution watermark */
+    .leaflet-control-attribution {
+      display: none !important;
+    }
+    /* Safe Zoom Controls in Bottom Right */
+    .leaflet-bottom.leaflet-right {
+      margin-bottom: 230px !important;
+      margin-right: 20px !important;
+    }
+    .leaflet-bar {
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 10px !important;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important;
+      overflow: hidden;
+    }
+    .leaflet-bar a {
+      background-color: #ffffff !important;
+      color: #1e293b !important;
+      width: 32px !important;
+      height: 32px !important;
+      line-height: 32px !important;
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+    .pulse-ring-red { animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+    .pulse-ring-blue { animation: pulseRing 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+    .pulse-ring-emerald { animation: pulseRing 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+
+    @keyframes beaconGlow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4), 0 0 18px rgba(37, 99, 235, 0.8); }
+      50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2), 0 0 28px rgba(37, 99, 235, 1); }
+    }
+    .drone-beacon { animation: beaconGlow 1.4s ease-in-out infinite; }
+
+    @keyframes ambGlow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4), 0 0 18px rgba(245, 158, 11, 0.8); }
+      50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.2), 0 0 28px rgba(245, 158, 11, 1); }
+    }
+    .ambulance-beacon { animation: ambGlow 1.2s ease-in-out infinite; }
+
+    @keyframes toastSlide {
+      0% { transform: translate(-50%, -20px); opacity: 0; }
+      15% { transform: translate(-50%, 0); opacity: 1; }
+      85% { transform: translate(-50%, 0); opacity: 1; }
+      100% { transform: translate(-50%, -20px); opacity: 0; }
+    }
+    .toast-active { animation: toastSlide 3.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
+
+<!-- FLOATING TOAST NOTIFICATION -->
+<div class="fixed top-6 left-1/2 -translate-x-1/2 z-[2000] pointer-events-none hidden items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900/95 backdrop-blur-md text-white border border-slate-700 shadow-2xl text-xs font-medium" id="liveToast">
+  <span class="material-symbols-outlined text-blue-400 text-base" id="toastIcon">verified</span>
+  <span id="toastMessage">Mission Flight Authorized</span>
+</div>
+
+<div class="relative w-full h-full flex flex-row overflow-hidden">
+  
+  <!-- UNIFIED SYNCHRONIZED SIDEBAR -->
+  <aside class="relative z-30 w-72 lg:w-80 h-full bg-sidebar text-slate-300 flex flex-col justify-between shrink-0 shadow-2xl border-r border-slate-800" style="background-color: rgb(20, 2, 4); border-color: rgb(46, 8, 13);">
+    <div class="flex flex-col flex-1 overflow-y-auto">
+      
+      <!-- Brand & District Node Header with Hackathon Logo -->
+      <div class="px-5 py-5 border-b border-slate-800 flex items-center justify-between" style="border-color: rgb(46, 8, 13);">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
+            <img src="../hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+          </div>
+          <div>
+            <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
+              SANJEEVANI
+              <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span></span>
+            </span>
+            <p class="text-[11px] text-slate-400 font-mono">Nadia Command Node WB-08</p>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300 font-semibold border border-blue-400/30">ONLINE</span>
+      </div>
+
+      <!-- Navigation Section -->
+      <nav class="px-3 py-4 space-y-1">
+        <p class="px-3 pb-2 text-[10px] font-semibold tracking-wider uppercase text-slate-400">Clinical Surveillance</p>
+        
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Overview / Clinical Matrix</span>
+          </div>
+        </a>
+
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group" href="../sanjeevani_district_medical_stock_inventory_control/code.html">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Medical Stock &amp; Inventory</span>
+          </div>
+          <span class="bg-emerald-500/20 text-emerald-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-emerald-500/30" id="sidebar-stock-tag">Stock Nominal</span>
+        </a>
+
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-white font-medium text-xs shadow-sm" href="#" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>Transit &amp; Corridors</span>
+          </div>
+          <span class="bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30" id="active-missions-badge">0 Missions</span>
+        </a>
+
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html#telemetryFeedContainer">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <span>WhatsApp Intake</span>
+          </div>
+          <span class="bg-white/10 text-white font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-white/20" id="sidebar-feed-count">1</span>
+        </a>
+      </nav>
+
+      <div class="h-[1px] bg-slate-800 mx-4 my-2" style="background-color: rgb(46, 8, 13);"></div>
+
+      <!-- Node Tracking Shortcuts -->
+      <div class="px-4 py-2 flex-1">
+        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          <span>Active Tracking Nodes</span>
+        </div>
+        <div class="space-y-1.5 font-mono text-xs">
+          <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition" onclick="panToNode('ranaghat')">
+            <div class="flex items-center space-x-2.5 truncate">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-300 border border-red-800">PHC</span>
+              <span class="text-white truncate font-sans text-xs">Ranaghat PHC</span>
+            </div>
+            <span class="text-red-400 text-xs font-sans font-bold" id="side-ranaghat-status">14/20 Beds</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition" onclick="panToNode('chakdaha')">
+            <div class="flex items-center space-x-2.5 truncate">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">BPHC</span>
+              <span class="text-white truncate font-sans text-xs">Chakdaha Depot</span>
+            </div>
+            <span class="text-blue-300 text-xs font-sans font-bold" id="side-chakdaha-status">14 Free</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition" onclick="panToNode('hanskhali')">
+            <div class="flex items-center space-x-2.5 truncate">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">RH</span>
+              <span class="text-white truncate font-sans text-xs">Hanskhali RH</span>
+            </div>
+            <span class="text-emerald-300 text-xs font-sans font-bold" id="side-hanskhali-status">13 Free</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Live Fleet In-Transit</p>
+          <div class="space-y-1 font-mono text-[11px]" id="sidebarFleetContainer">
+            <p class="text-slate-500 italic text-[10px]">No active units in transit.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="px-4 py-4 border-t border-slate-800 space-y-3" style="border-color: rgb(46, 8, 13);">
+      <div class="flex items-center space-x-3 p-2 rounded-lg" style="background-color: rgb(34, 6, 9); border: 1px solid rgb(46, 8, 13);">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white border" style="background-color: rgb(46, 8, 13); border-color: rgba(255, 255, 255, 0.2);">SR</div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-semibold text-white truncate">Dr. S. Roy (CMO)</p>
+          <p class="text-[10px] text-slate-400 truncate">Nadia Cluster Hub</p>
+        </div>
+      </div>
+      <button type="button" onclick="handleGlobalLogout()" class="w-full mt-2 py-2 px-3 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-800/50 hover:border-red-600 transition flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer shadow-sm">
+        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <span>Log Out to Overview</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MASTER MAP VIEWPORT -->
+  <main class="relative flex-1 h-full w-full overflow-hidden flex flex-col" id="mapMainViewport">
+    
+    <!-- TOP COMMAND BAR -->
+    <div class="absolute top-5 left-6 right-6 z-[500] flex items-center justify-between pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between shadow-lg text-xs text-slate-500">
+        <div class="flex items-center space-x-2.5 flex-1">
+          <span class="material-symbols-outlined text-slate-400 text-base">search</span>
+          <input class="bg-transparent border-none p-0 text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full font-medium" placeholder="Search Ranaghat, Chakdaha, Hanskhali..." type="text" oninput="searchMap(this.value)">
+        </div>
+      </div>
+
+      <div class="pointer-events-auto hidden md:flex items-center space-x-3 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl px-4 py-2 shadow-lg text-xs">
+        <div class="flex items-center space-x-2 text-slate-700 pr-3 border-r border-slate-200">
+          <span class="material-symbols-outlined text-blue-600 text-base">flight</span>
+          <span class="font-mono text-[11px] font-semibold" id="uavAirwayStatus">Airway: Standby</span>
+        </div>
+        <div class="flex items-center space-x-2 text-amber-600 font-mono text-[11px] font-semibold pr-3 border-r border-slate-200">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+          </span>
+          <span id="nh12StatusLabel">Transit Corridors Standby</span>
+        </div>
+        <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center space-x-1 text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 font-medium px-2.5 py-1 rounded-lg transition cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- LEAFLET INTERACTIVE MAP CONTAINER -->
+    <div id="leafletMap" class="w-full h-full z-10"></div>
+
+    <!-- FLOATING INSPECTION CARD (Hover Preview / Click to Pin) -->
+    <div class="absolute z-[600] w-80 lg:w-88 transition-all duration-200 hidden pointer-events-auto" id="inspectionCard" style="top: 14%; right: 24px;">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 text-slate-800 shadow-2xl relative">
+        <button class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeInspectionCard()">✕</button>
+        
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 pr-6">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-sm text-slate-900 tracking-wide" id="popoverNodeId">Ranaghat PHC</span>
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" id="popoverDot"></span>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-red-100 text-red-800 font-mono text-[10px] font-bold" id="popoverTier">CRITICAL</span>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5" id="popoverAddress">
+          <span class="material-symbols-outlined text-sm">location_on</span>
+          <span>Ranaghat Sub-District, Nadia</span>
+        </p>
+
+        <div class="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-slate-100 text-xs">
+          <div>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase" id="popoverLabel1">Bed Occupancy</p>
+            <p class="text-sm font-bold text-slate-900 mt-0.5" id="popoverMetric1">14 / 20 Beds</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold text-slate-400 uppercase" id="popoverLabel2">Free Capacity</p>
+            <p class="text-sm font-bold text-emerald-700 mt-0.5" id="popoverMetric2">6 Beds (4 O₂)</p>
+          </div>
+        </div>
+
+        <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="popoverPinHint">Hovering • Click to pin</span>
+          <button class="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer" onclick="panToSelectedNode()">Center Node</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERSISTENT BOTTOM DISPATCH & ROUTING DRAWER -->
+    <div class="absolute bottom-6 left-6 right-6 z-[1000] max-w-4xl mx-auto backdrop-blur-md border border-slate-200 rounded-2xl shadow-2xl p-4 transition-all duration-300 bg-white" id="dispatchDrawer">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-slate-100 gap-2 select-none">
+        <div class="flex items-center space-x-3">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Dynamic Mission Route Dispatch</h3>
+        </div>
+        
+        <!-- TARGET FACILITY SELECTOR -->
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-medium">Destination Node:</span>
+          <select id="dispatchDestinationSelect" onchange="onDestinationChanged()" class="text-xs font-semibold py-1.5 px-3 rounded-lg border border-slate-300 bg-slate-50 text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+            <option value="ranaghat">Ranaghat PHC (Outbreak Ward)</option>
+            <option value="hanskhali" selected>Hanskhali Rural Hospital (13 Free Beds)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
+        <!-- Drone Dispatch Control Card -->
+        <div class="p-3.5 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 transition flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-blue-600 text-sm">flight_takeoff</span>
+              AeroSupply Airlift: ASV + Cold Chain RL
+            </span>
+            <span class="font-mono text-[10px] text-blue-700 bg-blue-100/60 border border-blue-200 px-1.5 py-0.5 rounded font-semibold">3.8°C Safe</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-tight" id="droneCardDescription">
+            Deliver 50 units cold-chain cargo from Chakdaha Depot to Hanskhali Rural Hospital.
+          </p>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] font-mono text-slate-500" id="droneProgressText">Status: Fleet Ready</span>
+            <button class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer" onclick="manualTriggerSupply('drone')">
+              <span class="material-symbols-outlined text-xs">rocket_launch</span>
+              <span>Launch UAV Sortie</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bed Diversion Road Convoy Card -->
+        <div class="p-3.5 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 transition flex flex-col justify-between space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-amber-600 text-sm">ambulance</span>
+              Green Corridor: Ambulatory Transfer
+            </span>
+            <span class="font-mono text-[10px] text-amber-800 bg-amber-100/70 border border-amber-300 px-1.5 py-0.5 rounded font-semibold">Priority Escort</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-tight" id="roadCardDescription">
+            Transfer 5 stabilized patients along corridor to Hanskhali Rural Hospital.
+          </p>
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] font-mono text-slate-500" id="convoyProgressText">WBEMS Convoy Fleet Ready</span>
+            <button class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer" onclick="manualTriggerTransfer()">
+              <span class="material-symbols-outlined text-xs">traffic</span>
+              <span>Deploy Convoy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+    const BACKEND_URL = "http://localhost:8000";
+    let map = null;
+    let isPinned = false;
+    let currentTarget = "hanskhali";
+
+    // Nadia Ground Coordinates
+    const NODES = {
+      chakdaha: { lat: 23.0850, lng: 88.5250, name: "Chakdaha BPHC Depot", address: "Chakdaha Medical Hub, Nadia" },
+      ranaghat: { lat: 23.1800, lng: 88.5800, name: "Ranaghat PHC", address: "Ranaghat Sub-District, Nadia" },
+      hanskhali: { lat: 23.3600, lng: 88.6050, name: "Hanskhali Rural Hospital", address: "Hanskhali Rural Sector WB-08" }
+    };
+
+    let markers = {};
+    const liveVehicles = new Map();
+
+    function handleGlobalLogout() {
+      sessionStorage.clear();
+      window.location.href = "../sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
+    }
+
+    function showToast(msg, icon = 'verified', color = 'text-blue-400') {
+      const toast = document.getElementById('liveToast');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      msgEl.textContent = msg;
+      iconEl.textContent = icon;
+      iconEl.className = 'material-symbols-outlined text-base ' + color;
+      toast.classList.remove('hidden');
+      toast.classList.remove('toast-active');
+      void toast.offsetWidth;
+      toast.classList.add('toast-active');
+      setTimeout(() => toast.classList.add('hidden'), 3800);
+    }
+
+    function initMap() {
+      map = L.map('leafletMap', {
+        center: [23.2100, 88.5650],
+        zoom: 11,
+        zoomControl: false
+      });
+
+      // Free, high-contrast, watermark-free OpenStreetMap Public Tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18
+      }).addTo(map);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      map.on('click', () => {
+        if (isPinned) closeInspectionCard();
+      });
+
+      renderNodeMarkers();
+      renderCorridorPaths();
+    }
+
+    function createCustomMarkerIcon(color, iconName, label) {
+      const bgCol = color === 'red' ? 'bg-red-600' : (color === 'emerald' ? 'bg-emerald-600' : 'bg-blue-600');
+      return L.divIcon({
+        className: 'custom-leaflet-icon',
+        html: `
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            <span class="pulse-ring-${color} absolute w-11 h-11 rounded-full border-2 border-${color}-500/50 bg-${color}-500/10 pointer-events-none"></span>
+            <div class="w-8 h-8 rounded-full ${bgCol} text-white flex items-center justify-center shadow-lg border-2 border-white">
+              <span class="material-symbols-outlined text-sm">${iconName}</span>
+            </div>
+            <div class="absolute left-9 top-0 whitespace-nowrap bg-white/95 backdrop-blur-sm border border-slate-200 px-2 py-0.5 rounded shadow-sm text-[10px] font-bold text-slate-800">
+              ${label}
+            </div>
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+    }
+
+    function renderNodeMarkers() {
+      markers.ranaghat = L.marker([NODES.ranaghat.lat, NODES.ranaghat.lng], {
+        icon: createCustomMarkerIcon('red', 'local_hospital', 'Ranaghat PHC')
+      }).addTo(map);
+      attachHoverAndClick(markers.ranaghat, 'ranaghat');
+
+      markers.chakdaha = L.marker([NODES.chakdaha.lat, NODES.chakdaha.lng], {
+        icon: createCustomMarkerIcon('blue', 'domain', 'Chakdaha Depot')
+      }).addTo(map);
+      attachHoverAndClick(markers.chakdaha, 'chakdaha');
+
+      markers.hanskhali = L.marker([NODES.hanskhali.lat, NODES.hanskhali.lng], {
+        icon: createCustomMarkerIcon('emerald', 'health_and_safety', 'Hanskhali RH')
+      }).addTo(map);
+      attachHoverAndClick(markers.hanskhali, 'hanskhali');
+    }
+
+    function renderCorridorPaths() {
+      // Highway Corridor (Amber)
+      L.polyline([
+        [NODES.chakdaha.lat, NODES.chakdaha.lng],
+        [23.1300, 88.5450],
+        [NODES.ranaghat.lat, NODES.ranaghat.lng]
+      ], {
+        color: '#f59e0b',
+        weight: 4,
+        dashArray: '8, 8',
+        opacity: 0.4
+      }).addTo(map);
+
+      // Rural Branch Axis (Emerald)
+      L.polyline([
+        [NODES.ranaghat.lat, NODES.ranaghat.lng],
+        [23.2700, 88.5950],
+        [NODES.hanskhali.lat, NODES.hanskhali.lng]
+      ], {
+        color: '#10b981',
+        weight: 4,
+        dashArray: '8, 8',
+        opacity: 0.4
+      }).addTo(map);
+    }
+
+    function attachHoverAndClick(leafletMarker, nodeKey) {
+      leafletMarker.on('mouseover', () => {
+        if (!isPinned) {
+          populateInspectionCard(nodeKey);
+          document.getElementById('inspectionCard').classList.remove('hidden');
+          document.getElementById('popoverPinHint').textContent = "Hovering • Click to pin";
+        }
+      });
+
+      leafletMarker.on('mouseout', () => {
+        if (!isPinned) {
+          document.getElementById('inspectionCard').classList.add('hidden');
+        }
+      });
+
+      leafletMarker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        if (isPinned && currentTarget === nodeKey) {
+          closeInspectionCard();
+        } else {
+          isPinned = true;
+          currentTarget = nodeKey;
+          populateInspectionCard(nodeKey);
+          document.getElementById('inspectionCard').classList.remove('hidden');
+          document.getElementById('popoverPinHint').textContent = "Pinned • Click anywhere to unpin";
+        }
+      });
+    }
+
+    function populateInspectionCard(nodeKey) {
+      const title = document.getElementById('popoverNodeId');
+      const tier = document.getElementById('popoverTier');
+      const addr = document.getElementById('popoverAddress');
+      const dot = document.getElementById('popoverDot');
+      const m1 = document.getElementById('popoverMetric1');
+      const m2 = document.getElementById('popoverMetric2');
+      const l1 = document.getElementById('popoverLabel1');
+      const l2 = document.getElementById('popoverLabel2');
+
+      if (nodeKey === 'ranaghat') {
+        title.textContent = "Ranaghat PHC";
+        dot.className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+        tier.textContent = "CRITICAL SURGE";
+        tier.className = "px-2 py-0.5 rounded bg-red-100 text-red-800 font-mono text-[10px] font-bold";
+        addr.textContent = NODES.ranaghat.address;
+        l1.textContent = "Ward Capacity";
+        l2.textContent = "Free Capacity";
+        m1.textContent = "14 / 20 Beds";
+        m2.textContent = "6 Free (4 O₂)";
+      } else if (nodeKey === 'chakdaha') {
+        title.textContent = "Chakdaha BPHC Depot";
+        dot.className = "w-2 h-2 rounded-full bg-blue-600";
+        tier.textContent = "CENTRAL DEPOT";
+        tier.className = "px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono text-[10px] font-bold";
+        addr.textContent = NODES.chakdaha.address;
+        l1.textContent = "Fleet Status";
+        l2.textContent = "Depot Reserve";
+        m1.textContent = "Fleet Active";
+        m2.textContent = "14 Free Beds";
+      } else if (nodeKey === 'hanskhali') {
+        title.textContent = "Hanskhali Rural Hospital";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        tier.textContent = "SURPLUS READY";
+        tier.className = "px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold";
+        addr.textContent = NODES.hanskhali.address;
+        l1.textContent = "Hospital Beds";
+        l2.textContent = "Available Capacity";
+        m1.textContent = "12 / 25 Beds";
+        m2.textContent = "13 Free Beds";
+      }
+    }
+
+    function closeInspectionCard() {
+      isPinned = false;
+      document.getElementById('inspectionCard').classList.add('hidden');
+    }
+
+    function panToNode(key) {
+      if (NODES[key] && map) {
+        map.flyTo([NODES[key].lat, NODES[key].lng], 13, { duration: 1.2 });
+        isPinned = true;
+        currentTarget = key;
+        populateInspectionCard(key);
+        document.getElementById('inspectionCard').classList.remove('hidden');
+        document.getElementById('popoverPinHint').textContent = "Pinned • Click map to unpin";
+      }
+    }
+
+    function panToSelectedNode() {
+      panToNode(currentTarget);
+    }
+
+    function onDestinationChanged() {
+      currentTarget = document.getElementById("dispatchDestinationSelect").value;
+      const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Ranaghat PHC";
+      document.getElementById("droneCardDescription").innerText = `Deliver 50 units cold-chain cargo from Chakdaha Depot to ${destName}.`;
+      document.getElementById("roadCardDescription").innerText = `Transfer 5 stabilized patients along corridor to ${destName}.`;
+      panToNode(currentTarget);
+      showToast(`Target Set to ${destName}`, 'near_me', 'text-emerald-400');
+    }
+
+    // -------------------------------------------------------------
+    // DYNAMIC MULTI-VEHICLE ENGINE (Supports Multiple Drones & Convoys)
+    // -------------------------------------------------------------
+    function getMissionRoute(mission) {
+      const isDrone = mission.type === "drone";
+      const destName = (mission.facility || mission.to_fac || "").toLowerCase();
+      const isHanskhali = destName.includes("hanskhali");
+      const destCoord = isHanskhali ? NODES.hanskhali : NODES.ranaghat;
+
+      if (isDrone) {
+        const midLat = (NODES.chakdaha.lat + destCoord.lat) / 2 + (isHanskhali ? -0.01 : 0.02);
+        const midLng = (NODES.chakdaha.lng + destCoord.lng) / 2 + (isHanskhali ? -0.03 : -0.03);
+        return [
+          [NODES.chakdaha.lat, NODES.chakdaha.lng],
+          [midLat, midLng],
+          [destCoord.lat, destCoord.lng]
+        ];
+      } else {
+        return isHanskhali ? [
+          [NODES.chakdaha.lat, NODES.chakdaha.lng],
+          [23.1300, 88.5450],
+          [NODES.ranaghat.lat, NODES.ranaghat.lng],
+          [23.2700, 88.5950],
+          [NODES.hanskhali.lat, NODES.hanskhali.lng]
+        ] : [
+          [NODES.chakdaha.lat, NODES.chakdaha.lng],
+          [23.1300, 88.5450],
+          [NODES.ranaghat.lat, NODES.ranaghat.lng]
+        ];
+      }
+    }
+
+    function interpolatePosition(routeCoords, progress) {
+      const points = routeCoords.map(c => L.latLng(c[0], c[1]));
+      const totalSegments = points.length - 1;
+      const currentSegment = Math.min(totalSegments - 1, Math.floor(progress * totalSegments));
+      const segProgress = (progress * totalSegments) - currentSegment;
+
+      const p1 = points[currentSegment];
+      const p2 = points[currentSegment + 1];
+
+      const lat = p1.lat + (p2.lat - p1.lat) * segProgress;
+      const lng = p1.lng + (p2.lng - p1.lng) * segProgress;
+      return { lat, lng, segmentIndex: currentSegment, points };
+    }
+
+    function syncActiveMissionVehicles(activeMissions) {
+      const activeIds = new Set(activeMissions.map(m => m.id));
+
+      for (const [id, entity] of liveVehicles.entries()) {
+        if (!activeIds.has(id)) {
+          map.removeLayer(entity.marker);
+          if (entity.trail) map.removeLayer(entity.trail);
+          liveVehicles.delete(id);
+          showToast(`Mission ${id} Complete! Consignment Delivered.`, 'verified', 'text-emerald-400');
+        }
+      }
+
+      activeMissions.forEach((mission, index) => {
+        const isDrone = mission.type === "drone";
+        const isRoadSupply = mission.type === "road_supply";
+        const progress = Math.min(1, Math.max(0, (mission.progress_pct || 0) / 100));
+
+        let entity = liveVehicles.get(mission.id);
+
+        if (!entity) {
+          const route = getMissionRoute(mission);
+          const color = isDrone ? '#2563eb' : (isRoadSupply ? '#0284c7' : '#f59e0b');
+          const iconSymbol = isDrone ? 'flight' : 'local_shipping';
+          const beaconClass = isDrone ? 'drone-beacon' : 'ambulance-beacon';
+          const bgCol = isDrone ? 'bg-blue-600' : (isRoadSupply ? 'bg-sky-600' : 'bg-amber-500 text-slate-900');
+
+          const icon = L.divIcon({
+            className: 'live-transit-vehicle',
+            html: `
+              <div class="relative flex items-center justify-center">
+                <span class="${beaconClass} absolute w-10 h-10 rounded-full"></span>
+                <div class="w-8 h-8 rounded-full ${bgCol} border-2 border-white shadow-2xl flex items-center justify-center font-bold text-white">
+                  <span class="material-symbols-outlined text-sm">${iconSymbol}</span>
+                </div>
+                <div class="absolute left-9 top-0 whitespace-nowrap bg-slate-900 text-white font-mono text-[9px] px-2 py-0.5 rounded shadow-lg border border-slate-700">
+                  ${mission.id.slice(0, 10)} • ${mission.eta_formatted || 'En Route'}
+                </div>
+              </div>
+            `,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+          });
+
+          const startCoord = route[0];
+          const marker = L.marker([startCoord[0], startCoord[1]], { 
+            icon: icon, 
+            zIndexOffset: 1000 + index * 10 
+          }).addTo(map);
+
+          const trail = L.polyline([L.latLng(startCoord[0], startCoord[1])], {
+            color: color,
+            weight: 5,
+            opacity: 0.9,
+            lineCap: 'round'
+          }).addTo(map);
+
+          entity = { marker, trail, routeCoords: route, mission };
+          liveVehicles.set(mission.id, entity);
+
+          showToast(`Live Dispatch: ${mission.mode || 'Corridor'} active -> ${mission.facility || mission.to_fac}`, isDrone ? 'flight_takeoff' : 'local_police', isDrone ? 'text-blue-400' : 'text-amber-400');
+        }
+
+        const interp = interpolatePosition(entity.routeCoords, progress);
+        entity.marker.setLatLng([interp.lat, interp.lng]);
+
+        const traversed = interp.points.slice(0, interp.segmentIndex + 1);
+        traversed.push(L.latLng(interp.lat, interp.lng));
+        entity.trail.setLatLngs(traversed);
+      });
+
+      const badge = document.getElementById("active-missions-badge");
+      if (badge) {
+        badge.innerText = `${activeMissions.length} Active`;
+        badge.className = activeMissions.length > 0
+          ? "bg-cyan-500/20 text-cyan-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-cyan-500/30 animate-pulse"
+          : "bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30";
+      }
+
+      const droneCount = activeMissions.filter(m => m.type === "drone").length;
+      const convoyCount = activeMissions.filter(m => m.type !== "drone").length;
+      document.getElementById("uavAirwayStatus").innerText = droneCount > 0 ? `Airway: ${droneCount} UAV(s) In Flight` : "Airway: Standby";
+      document.getElementById("nh12StatusLabel").innerText = convoyCount > 0 ? `Corridors: ${convoyCount} Convoy(s) Active` : "Transit Corridors Standby";
+
+      const fleetContainer = document.getElementById("sidebarFleetContainer");
+      if (fleetContainer) {
+        if (activeMissions.length === 0) {
+          fleetContainer.innerHTML = `<p class="text-slate-500 italic text-[10px]">No active units in transit.</p>`;
+        } else {
+          fleetContainer.innerHTML = activeMissions.map(m => `
+            <div class="flex items-center justify-between p-1.5 rounded bg-white/5 border border-white/10 text-[10px]">
+              <span class="truncate text-slate-200">${m.mode}: ${m.item || (m.patients + ' Patients')}</span>
+              <span class="text-amber-400 font-bold ml-1">${m.eta_formatted}</span>
+            </div>
+          `).join("");
+        }
+      }
+    }
+
+    async function manualTriggerSupply(mode = "drone") {
+      const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Ranaghat PHC";
+      try {
+        await fetch(`${BACKEND_URL}/api/v1/dispatch/supply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            facility_id: destName,
+            item_name: "Ringer's Lactate (RL) 500ml Infusion",
+            quantity: 50,
+            mode: mode
+          })
+        });
+        syncData();
+      } catch (e) {}
+    }
+
+    async function manualTriggerTransfer() {
+      const destName = currentTarget === "hanskhali" ? "Hanskhali Rural Hospital" : "Chakdaha BPHC";
+      try {
+        await fetch(`${BACKEND_URL}/api/v1/beds/authorize-transfer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from_facility: "Ranaghat PHC",
+            to_facility: destName,
+            patient_count: 5
+          })
+        });
+        syncData();
+      } catch (e) {}
+    }
+
+    function searchMap(term) {
+      const q = (term || "").toLowerCase().trim();
+      if (!q) return;
+      if (q.includes('ranaghat')) panToNode('ranaghat');
+      else if (q.includes('chakdaha')) panToNode('chakdaha');
+      else if (q.includes('hanskhali')) panToNode('hanskhali');
+    }
+
+    async function syncData() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.active_missions) {
+          syncActiveMissionVehicles(data.active_missions);
+        }
+
+        if (data.bed_matrix && data.bed_matrix.facilities) {
+          data.bed_matrix.facilities.forEach(fac => {
+            const occ = fac.bed_capacity.occupied_beds;
+            const tot = fac.bed_capacity.total_beds;
+            const free = Math.max(0, tot - occ);
+            const name = fac.name.toLowerCase();
+
+            if (name.includes("ranaghat")) {
+              document.getElementById("side-ranaghat-status").textContent = `${occ}/${tot} Beds`;
+            } else if (name.includes("chakdaha")) {
+              document.getElementById("side-chakdaha-status").textContent = `${free} Free`;
+            } else if (name.includes("hanskhali")) {
+              document.getElementById("side-hanskhali-status").textContent = `${free} Free`;
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      syncData();
+      setInterval(syncData, 1000);
+    });
+</script>
+</body>
+</html>

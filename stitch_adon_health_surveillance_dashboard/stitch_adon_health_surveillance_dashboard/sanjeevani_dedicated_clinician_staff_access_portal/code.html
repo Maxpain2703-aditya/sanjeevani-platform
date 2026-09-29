@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="web_blank" name="shell-type">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  @layer base {
+    html, body { margin: 0; padding: 0; }
+    body { overscroll-behavior: none; }
+    main>:first-child { margin-top: 0 !important; }
+    main>:last-child { margin-bottom: 0 !important; }
+  }
+  ::-webkit-scrollbar { display: none; }
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary": "#000000",
+          "surface-container-low": "#f2f4f6",
+          "hero-gradient-via": "#3d1212",
+          "on-secondary-fixed": "#410004",
+          "on-primary": "#ffffff",
+          "status-active": "#10b981",
+          "crimson-glow": "#f87171",
+          "surface": "#f7f9fb",
+          "primary": "#000000",
+          "secondary": "#b61722",
+          "crimson-muted": "#fda4af",
+          "surface-card": "#ffffff",
+          "border-subtle": "#e2e8f0",
+          "text-muted": "#64748b",
+          "text-primary": "#0f172a"
+        },
+        spacing: {
+          "space-sm": "0.5rem",
+          "margin": "2.5rem",
+          "space-md": "1rem",
+          "space-lg": "1.5rem",
+          "space-xs": "0.25rem",
+          "space-xl": "2.5rem",
+          "gutter": "1.5rem"
+        }
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-surface font-sans text-slate-800 min-h-screen flex flex-col justify-between selection:bg-red-100 selection:text-red-900" style="background: radial-gradient(circle at 15% 20%, rgb(232, 245, 236) 0%, rgb(244, 249, 246) 45%, rgb(255, 255, 255) 85%);">
+
+  <!-- Top Header -->
+  <header class="w-full bg-white/85 backdrop-blur-xl shadow-xs z-30 border-b border-slate-200/60">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- BLENDED HACKATHON LOGO IN HEADER -->
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900/5 border border-slate-300/60 p-1 shrink-0 overflow-hidden shadow-2xs backdrop-blur-sm">
+          <img src="../hacathon logo.jpeg" alt="Logo" class="w-full h-full object-contain rounded-lg opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold tracking-tight text-slate-900 text-sm">SANJEEVANI</span>
+            <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px] tracking-wide">WB-DHFW-NADIA</span>
+          </div>
+          <span class="text-[11px] text-slate-500">Health &amp; Family Welfare Dept • Govt. of West Bengal</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100/80">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[11px] text-slate-700 font-mono font-bold" id="backend-status-pill">BACKEND: CHECKING...</span>
+        </div>
+        <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 transition text-xs font-semibold cursor-pointer shadow-xs">
+          <span class="material-symbols-outlined text-[16px]">logout</span>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="w-full flex-1 flex flex-col justify-center items-center px-4 sm:px-6 py-8">
+    <div class="max-w-[1180px] w-full mx-auto space-y-6">
+      
+      <!-- System Status Bar -->
+      <div class="w-full bg-white/90 backdrop-blur-md rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm border border-slate-200/80">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-red-50 text-red-700 shadow-xs border border-red-100">
+            <span class="material-symbols-outlined text-[22px]">crisis_alert</span>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold tracking-tight text-slate-900 text-sm">SANJEEVANI COMMAND</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-mono text-[10px] font-semibold border border-emerald-200">GEMINI 3.6-FLASH EDGE</span>
+            </div>
+            <span class="text-xs text-slate-500">Rural Healthcare Surveillance &amp; Emergency Logistics Platform • Nadia District Cluster</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span class="font-mono text-[11px] text-slate-600">SYSTEM: <span class="text-slate-900 font-bold" id="sys-status">OPERATIONAL</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Central Dual-Pane Enclosure -->
+      <div class="w-full bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row min-h-[620px]">
+        
+        <!-- Left Showcase Enclave: Deep Oxblood Gradient with Soft, Aesthetic Blended Logo -->
+        <div class="lg:w-[50%] w-full relative p-8 lg:p-12 flex flex-col justify-between overflow-hidden text-white select-none" style="background: radial-gradient(circle at 80% 20%, #2f070c 0%, #1a0306 50%, #0d0103 100%);">
+          <!-- Background Radar SVG -->
+          <div class="absolute inset-0 pointer-events-none flex items-center justify-center opacity-25">
+            <svg class="w-[600px] h-[600px]" fill="none" viewBox="0 0 600 600">
+              <circle cx="300" cy="300" r="90" stroke="#fda4af" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="3 3"></circle>
+              <circle cx="300" cy="300" r="160" stroke="#fda4af" stroke-width="1" stroke-opacity="0.3"></circle>
+              <circle cx="300" cy="300" r="230" stroke="#fda4af" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="4 4"></circle>
+              <circle cx="300" cy="300" r="300" stroke="#fda4af" stroke-width="1.2" stroke-opacity="0.3"></circle>
+            </svg>
+          </div>
+
+          <!-- BRANDING ROW WITH SOFTLY BLENDED, AESTHETIC LOGO -->
+          <div class="relative z-10 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+              <!-- SOFTLY BLENDED GLASSMORPHISM LOGO CONTAINER -->
+              <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
+                <img src="../hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='./hacathon logo.jpeg';">
+              </div>
+              <div class="flex flex-col">
+                <span class="font-extrabold tracking-wider text-white text-lg">SANJEEVANI</span>
+                <span class="font-mono text-[11px] text-rose-300 font-semibold">Nadia District Cluster WB-08</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="font-mono text-[10px] text-white font-medium">WhatsApp API Active</span>
+            </div>
+          </div>
+
+          <div class="relative z-10 my-auto py-10 flex flex-col space-y-4">
+            <h2 class="text-3xl font-light text-white tracking-tight leading-snug">
+              Intelligent Healthcare Surveillance &amp; Emergency Logistics
+            </h2>
+            <p class="text-sm text-rose-200/90 leading-relaxed max-w-md">
+              Multimodal voice &amp; register ingestion powered by Gemini 3.6-Flash, automated bed reallocation, and autonomous drone transit across Nadia District.
+            </p>
+            <div class="p-4 rounded-2xl bg-white/10 border border-rose-300/20 backdrop-blur-md max-w-md">
+              <div class="flex items-center gap-2 text-emerald-300 font-mono text-xs font-semibold uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[16px]">chat</span>
+                <span>WhatsApp Frontline Telemetry Ingestion</span>
+              </div>
+              <p class="text-xs text-rose-200/80 mt-1">
+                Nurses on duty can send voice notes or register photos directly to WhatsApp: <code class="bg-black/40 px-1.5 py-0.5 rounded text-white font-mono">+1 555-167-9544</code>
+              </p>
+            </div>
+          </div>
+
+          <div class="relative z-10 grid grid-cols-2 gap-3 pt-4 border-t border-white/10 text-xs">
+            <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+              <span class="font-mono text-[10px] text-rose-300/80 uppercase">INGEST ENGINE</span>
+              <p class="font-bold text-white mt-0.5">Gemini 3.6-Flash</p>
+            </div>
+            <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+              <span class="font-mono text-[10px] text-rose-300/80 uppercase">SECURE ENDPOINT</span>
+              <p class="font-bold text-white mt-0.5">FastAPI (Port 8000)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Authentication Panel -->
+        <div class="lg:w-[50%] w-full bg-white p-8 lg:p-12 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="font-mono text-[11px] uppercase tracking-wider text-slate-500 font-bold">GATEWAY READY</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <button type="button" onclick="handleGlobalLogout()" class="text-xs text-red-600 hover:text-red-800 transition font-semibold flex items-center gap-1 cursor-pointer">
+                  <span class="material-symbols-outlined text-[15px]">logout</span>
+                  <span>Sign Out</span>
+                </button>
+                <a id="direct-dash-link" href="../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html" class="text-xs text-slate-500 hover:text-slate-900 transition font-medium flex items-center gap-1">
+                  <span>Direct Dashboard</span>
+                  <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="mt-8">
+              <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+                Log in to Portal
+              </h1>
+              <p class="text-xs text-slate-500 mt-1">
+                Nadia District Healthcare Surveillance &amp; Transit Network
+              </p>
+            </div>
+
+            <!-- Role Selector Tabs -->
+            <div class="mt-6 grid grid-cols-2 p-1 rounded-xl bg-slate-100 text-xs font-semibold" id="role-selector">
+              <button id="tab-phc" type="button" class="py-2.5 rounded-lg text-slate-900 bg-white shadow-xs transition cursor-pointer text-center">
+                Frontline Facility / PHC Staff
+              </button>
+              <button id="tab-cmo" type="button" class="py-2.5 rounded-lg text-slate-500 hover:text-slate-900 transition cursor-pointer text-center">
+                District CMO &amp; Command
+              </button>
+            </div>
+
+            <div id="auth-alert" class="hidden mt-4 p-3 rounded-xl text-xs font-medium border"></div>
+
+            <!-- Login Form -->
+            <form class="mt-6 space-y-4 text-xs" onsubmit="event.preventDefault(); handleAuthSubmit();">
+              <div class="space-y-1.5">
+                <label for="facility-id" class="font-semibold text-slate-700 block">Username / Service ID</label>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-[18px]">badge</span>
+                  <input type="text" id="facility-id" required="" value="nurse_ranaghat" placeholder="e.g., nurse_ranaghat" class="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3 rounded-xl text-slate-800 focus:bg-white focus:border-slate-800 focus:outline-none transition shadow-2xs">
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center">
+                  <label for="passkey-input" class="font-semibold text-slate-700 block">Access Password</label>
+                  <a href="javascript:void(0)" onclick="alert('Demo Credentials:\nnurse_ranaghat -> phc@2026\nadmin -> admin')" class="text-secondary hover:underline font-medium">Demo credentials?</a>
+                </div>
+                <div class="relative flex items-center">
+                  <span class="material-symbols-outlined absolute left-3.5 text-slate-400 text-[18px]">lock</span>
+                  <input type="password" id="passkey-input" required="" value="phc@2026" placeholder="Enter clinical passkey" class="w-full bg-slate-50 border border-slate-200 pl-10 pr-10 py-3 rounded-xl text-slate-800 focus:bg-white focus:border-slate-800 focus:outline-none transition shadow-2xs">
+                  <button type="button" onclick="togglePassVisibility()" class="absolute right-3.5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
+                    <span id="eye-icon" class="material-symbols-outlined text-[18px]">visibility</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="pt-1 flex justify-between items-center text-slate-500 text-[11px]">
+                <span>User: <code class="font-mono font-bold text-slate-800">nurse_ranaghat</code></span>
+                <span>Pass: <code class="font-mono font-bold text-slate-800">phc@2026</code></span>
+              </div>
+
+              <button type="submit" id="submit-cta" class="w-full mt-4 py-3.5 px-4 rounded-xl bg-slate-900 text-white font-bold tracking-wide flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 active:scale-[0.99] transition cursor-pointer">
+                <span id="cta-label">Access Portal</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+            </form>
+          </div>
+
+          <div class="mt-8 pt-4 border-t border-slate-200 text-center text-slate-400 font-mono text-[10px]">
+            Sanjeevani v4.6.0 • Nadia District Health Dept • Gemini Edge Verified
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function handleGlobalLogout() {
+      sessionStorage.removeItem("sanjeevani_session");
+      sessionStorage.clear();
+      window.location.href = "../sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
+    }
+
+    const CREDENTIALS = {
+      "nurse_ranaghat": { pass: "phc@2026", name: "Staff Nurse", facility: "Ranaghat PHC", role: "Frontline" },
+      "mo_chakdaha": { pass: "phc@2026", name: "Medical Officer", facility: "Chakdaha BPHC", role: "Frontline" },
+      "admin": { pass: "admin", name: "Chief Medical Officer", facility: "District HQ", role: "CMO" }
+    };
+
+    const BACKEND_URL = "http://localhost:8000";
+
+    function getDashboardPath() {
+      return "../sanjeevani_district_command_bed_matrix_interactive_animated_edition/code.html";
+    }
+
+    async function checkBackendHealth() {
+      const pill = document.getElementById("backend-status-pill");
+      try {
+        const res = await fetch(`${BACKEND_URL}/health`);
+        if (res.ok) {
+          pill.innerText = "FASTAPI: ONLINE (8000)";
+          pill.className = "text-[11px] text-emerald-600 font-mono font-bold";
+        }
+      } catch (e) {
+        pill.innerText = "FASTAPI: OFFLINE";
+        pill.className = "text-[11px] text-rose-500 font-mono font-bold";
+      }
+    }
+    checkBackendHealth();
+
+    const tabPhc = document.getElementById('tab-phc');
+    const tabCmo = document.getElementById('tab-cmo');
+    const idInput = document.getElementById('facility-id');
+    const passInput = document.getElementById('passkey-input');
+
+    if (tabPhc && tabCmo) {
+      tabPhc.addEventListener('click', () => {
+        tabPhc.className = "py-2.5 rounded-lg text-slate-900 bg-white shadow-xs transition cursor-pointer text-center";
+        tabCmo.className = "py-2.5 rounded-lg text-slate-500 hover:text-slate-900 transition cursor-pointer text-center";
+        idInput.value = "nurse_ranaghat";
+        passInput.value = "phc@2026";
+      });
+
+      tabCmo.addEventListener('click', () => {
+        tabCmo.className = "py-2.5 rounded-lg text-slate-900 bg-white shadow-xs transition cursor-pointer text-center";
+        tabPhc.className = "py-2.5 rounded-lg text-slate-500 hover:text-slate-900 transition cursor-pointer text-center";
+        idInput.value = "admin";
+        passInput.value = "admin";
+      });
+    }
+
+    function togglePassVisibility() {
+      const eyeIcon = document.getElementById('eye-icon');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.innerText = 'visibility_off';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.innerText = 'visibility';
+      }
+    }
+
+    function showMessage(text, isError = false) {
+      const box = document.getElementById('auth-alert');
+      box.innerText = text;
+      box.className = isError 
+        ? "mt-4 p-3 rounded-xl text-xs font-medium border bg-red-50 text-red-700 border-red-200 block" 
+        : "mt-4 p-3 rounded-xl text-xs font-medium border bg-emerald-50 text-emerald-800 border-emerald-200 block";
+    }
+
+    async function handleAuthSubmit() {
+      const username = idInput.value.trim();
+      const password = passInput.value.trim();
+      const cta = document.getElementById('submit-cta');
+
+      cta.disabled = true;
+      cta.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span><span>Authenticating credentials...</span>';
+
+      try {
+        const user = CREDENTIALS[username];
+
+        if (user && user.pass === password) {
+          sessionStorage.setItem("sanjeevani_session", JSON.stringify({
+            userId: username,
+            role: user.role,
+            name: user.name,
+            facility: user.facility
+          }));
+
+          showMessage(`✅ Verified: ${user.name} (${user.facility}). Routing to Live Grid...`, false);
+          cta.innerHTML = '<span class="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span><span>Authenticated!</span>';
+
+          setTimeout(() => {
+            window.location.href = getDashboardPath();
+          }, 700);
+
+        } else {
+          cta.disabled = false;
+          cta.innerHTML = '<span id="cta-label">Access Portal</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+          showMessage("❌ Unauthorized: Invalid Service ID or Password. Try 'nurse_ranaghat' / 'phc@2026'.", true);
+        }
+      } catch (err) {
+        cta.disabled = false;
+        cta.innerHTML = '<span id="cta-label">Access Portal</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+        showMessage("⚠️ Authentication error. Please verify credentials.", true);
+      }
+    }
+  </script>
+</body>
+</html>

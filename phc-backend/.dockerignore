@@ -1,0 +1,32 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Git and GitHub metadata
+.git/
+.gitignore
+.github/
+
+# Environment files and credentials
+.env
+.env.*
+
+# IDE, OS, and local workspace artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs, test caches, and temp files
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
