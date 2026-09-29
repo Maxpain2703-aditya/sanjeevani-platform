@@ -41,11 +41,9 @@
     .leaflet-tile-pane {
       filter: saturate(0.85) contrast(1.05);
     }
-    /* Hide tile attribution watermark */
     .leaflet-control-attribution {
       display: none !important;
     }
-    /* Safe Zoom Controls in Bottom Right */
     .leaflet-bottom.leaflet-right {
       margin-bottom: 230px !important;
       margin-right: 20px !important;
@@ -112,7 +110,7 @@
       <div class="px-5 py-5 border-b border-slate-800 flex items-center justify-between" style="border-color: rgb(46, 8, 13);">
         <div class="flex items-center space-x-3.5">
           <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
-            <img src="/hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='../hacathon logo.jpeg';">
+            <img src="/hacathon%20logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.onerror=null; this.src='./hacathon logo.jpeg'; if(!this.complete) this.src='/sanjeevani_district_command_bed_matrix_interactive_animated_edition/hacathon%20logo.jpeg';">
           </div>
           <div>
             <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
@@ -131,7 +129,7 @@
         
         <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group cursor-pointer" href="/index.html">
           <div class="flex items-center space-x-2.5">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>Overview / Clinical Matrix</span>
           </div>
         </a>
@@ -153,7 +151,7 @@
           <span class="bg-blue-500/20 text-blue-300 font-semibold px-1.5 py-0.5 rounded-full text-[10px] border border-blue-500/30" id="active-missions-badge">0 Missions</span>
         </a>
 
-        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition group cursor-pointer" href="/index.html#telemetryFeedContainer">
+        <a class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white text-xs transition duration-150 group cursor-pointer" href="/index.html#telemetryFeedContainer">
           <div class="flex items-center space-x-2.5">
             <svg class="w-4 h-4 text-white transition-colors duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
             <span>WhatsApp Intake</span>
@@ -252,7 +250,7 @@
     <!-- LEAFLET INTERACTIVE MAP CONTAINER -->
     <div id="leafletMap" class="w-full h-full z-10"></div>
 
-    <!-- FLOATING INSPECTION CARD (Hover Preview / Click to Pin) -->
+    <!-- FLOATING INSPECTION CARD -->
     <div class="absolute z-[600] w-80 lg:w-88 transition-all duration-200 hidden pointer-events-auto" id="inspectionCard" style="top: 14%; right: 24px;">
       <div class="bg-white rounded-2xl p-4 border border-slate-200 text-slate-800 shadow-2xl relative">
         <button class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 cursor-pointer" onclick="closeInspectionCard()">✕</button>
@@ -357,7 +355,6 @@
 </div>
 
 <script>
-    // Dynamically resolve backend endpoint (production Render vs localhost)
     const BACKEND_URL = window.location.hostname.includes("render.com")
       ? "https://sanjeevani-backend-80sg.onrender.com"
       : "http://localhost:8000";
@@ -366,7 +363,6 @@
     let isPinned = false;
     let currentTarget = "ranaghat";
 
-    // Nadia Ground Coordinates
     const NODES = {
       chakdaha: { lat: 23.0850, lng: 88.5250, name: "Chakdaha BPHC Depot", address: "Chakdaha Medical Hub, Nadia" },
       ranaghat: { lat: 23.1800, lng: 88.5800, name: "Ranaghat PHC", address: "Ranaghat Sub-District, Nadia" },
@@ -379,7 +375,7 @@
 
     function handleGlobalLogout() {
       sessionStorage.clear();
-      window.location.href = "/sanjeevani_dedicated_clinician_staff_access_portal/code.html";
+      window.location.href = "/sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
     }
 
     function showToast(msg, icon = 'verified', color = 'text-blue-400') {
@@ -456,7 +452,6 @@
     }
 
     function renderCorridorPaths() {
-      // Highway Corridor (Amber)
       L.polyline([
         [NODES.chakdaha.lat, NODES.chakdaha.lng],
         [23.1300, 88.5450],
@@ -468,7 +463,6 @@
         opacity: 0.4
       }).addTo(map);
 
-      // Rural Branch Axis (Emerald)
       L.polyline([
         [NODES.ranaghat.lat, NODES.ranaghat.lng],
         [23.2700, 88.5950],
@@ -808,7 +802,7 @@
       else if (q.includes('hanskhali')) panToNode('hanskhali');
     }
 
-    // Step-by-step local animation ticker for active vehicles
+    // Step-by-step local animation ticker for active vehicles (every 1 second)
     function tickLocalMissions() {
       if (localSimulatedMissions.length === 0) return;
       
@@ -823,9 +817,22 @@
       syncActiveMissionVehicles(localSimulatedMissions);
     }
 
+    // Non-blocking Sequential Poller with AbortController
+    let isMapSyncing = false;
+
     async function syncData() {
+      if (isMapSyncing) return;
+      isMapSyncing = true;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
+        const res = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (!res.ok) throw new Error("Offline");
         const data = await res.json();
 
@@ -855,14 +862,18 @@
           });
         }
       } catch (e) {
-        tickLocalMissions();
+        clearTimeout(timeoutId);
+        syncActiveMissionVehicles(localSimulatedMissions);
+      } finally {
+        isMapSyncing = false;
+        setTimeout(syncData, 5000);
       }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       initMap();
       syncData();
-      setInterval(syncData, 1000);
+      setInterval(tickLocalMissions, 1000);
     });
 </script>
 </body>

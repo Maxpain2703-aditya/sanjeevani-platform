@@ -46,7 +46,7 @@
       <!-- Brand Header -->
       <div class="px-5 py-5 border-b border-slate-800 flex items-center space-x-3.5" style="border-color: rgb(46, 8, 13);">
         <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shadow-lg shrink-0 overflow-hidden backdrop-blur-md">
-          <img src="/hacathon logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.src='../hacathon logo.jpeg';">
+          <img src="/hacathon%20logo.jpeg" alt="Sanjeevani Logo" class="w-full h-full object-contain rounded-xl opacity-95 scale-105" onerror="this.onerror=null; this.src='./hacathon logo.jpeg'; if(!this.complete) this.src='/sanjeevani_district_command_bed_matrix_interactive_animated_edition/hacathon%20logo.jpeg';">
         </div>
         <div>
           <span class="text-white font-bold text-base tracking-wide flex items-center gap-1.5">
@@ -132,7 +132,7 @@
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           District Stock Sync Active
         </span>
-        <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center space-x-1.5 text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 hover:border-red-300 font-medium px-3 py-1.5 rounded-lg transition duration-150 cursor-pointer shadow-xs" title="Log Out of Sanjeevani">
+        <button type="button" onclick="handleGlobalLogout()" class="inline-flex items-center space-x-1.5 text-xs bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-300 hover:border-red-300 font-medium px-3 py-1.5 rounded-lg transition duration-150 cursor-pointer shadow-xs" title="Log Out to Hardware Intelligence Overview">
           <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
@@ -356,7 +356,7 @@
     function handleGlobalLogout() {
       sessionStorage.removeItem("sanjeevani_session");
       sessionStorage.clear();
-      window.location.href = "/sanjeevani_dedicated_clinician_staff_access_portal/code.html";
+      window.location.href = "/sanjeevani_hardware_intelligence_overview_authentication_portal/code.html";
     }
 
     function openPhysicalStockModal() {
@@ -396,7 +396,6 @@
       const desc = document.getElementById("banner-description");
       const preAuthBtn = document.getElementById("btn-preauth-drone");
 
-      // 1. Check for active in-flight missions
       const activeMission = latestActiveMissions.find(m => 
         (m.type === "drone" || m.type === "road_supply") && m.seconds_remaining > 0
       );
@@ -430,7 +429,6 @@
         return;
       }
 
-      // 2. Identify highest-urgency critical item
       const criticalItem = liveInventory.find(i => i.units === 0 || i.urgency === "CRITICAL");
 
       if (criticalItem) {
@@ -485,7 +483,6 @@
 
       document.getElementById("stock-count-summary").innerText = `${items.length} SKUs Tracked`;
 
-      // Update sidebar status badge
       const hasCritical = items.some(i => i.urgency === "CRITICAL" || i.units === 0);
       const stockoutBadge = document.getElementById("stockout-badge");
       if (stockoutBadge) {
@@ -593,7 +590,6 @@
           throw new Error("Local dispatch needed");
         }
       } catch (err) {
-        // Fallback local dispatch execution
         latestActiveMissions.push(missionPayload);
         const item = liveInventory.find(i => i.facility === facilityId && i.sku_name === itemName);
         if (item) {
@@ -709,9 +705,22 @@
       }, 1200);
     }
 
+    // Non-blocking Sequential Poller
+    let isInventorySyncing = false;
+
     async function syncInventoryData() {
+      if (isInventorySyncing) return;
+      isInventorySyncing = true;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
       try {
-        const response = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`);
+        const response = await fetch(`${BACKEND_URL}/api/v1/analytics/overview`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (!response.ok) throw new Error("Offline");
         const data = await response.json();
 
@@ -730,10 +739,14 @@
         renderInventoryTable(liveInventory);
 
       } catch (err) {
+        clearTimeout(timeoutId);
         if (!liveInventory.length) {
           liveInventory = DEFAULT_INVENTORY;
           renderInventoryTable(liveInventory);
         }
+      } finally {
+        isInventorySyncing = false;
+        setTimeout(syncInventoryData, 6000);
       }
     }
 
@@ -751,8 +764,12 @@
         } catch (e) {}
       }
 
+      // Initial immediate paint
+      liveInventory = DEFAULT_INVENTORY;
+      renderInventoryTable(liveInventory);
+
+      // Start non-blocking poller
       syncInventoryData();
-      setInterval(syncInventoryData, 3000);
     });
   </script>
 </body>
